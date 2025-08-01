@@ -1,5 +1,13 @@
 # Gafas IA---by sigaran
 
+
+<center> 
+  <h1>
+    <p> Projecto en proceso</p>
+  </h1>
+</center>
+
+
 Proyecto de bachillerato donde se plantea la solucion casera para ayudar a personas ciegas a realizar actividadesd diarias.
 
 -- Consta de las siguientes soluciones --
@@ -20,4 +28,6 @@ Proyecto de bachillerato donde se plantea la solucion casera para ayudar a perso
 *  pyttsx3 (TTS)
 *  Torch (torchvision)
 *  YOLOv5
+
+
 
