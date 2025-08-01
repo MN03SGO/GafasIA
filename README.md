@@ -3,7 +3,7 @@
 
 <center> 
   <h1>
-    <p> Projecto en proceso</p>
+    <p> Proyecto en proceso</p>
   </h1>
 </center>
 
