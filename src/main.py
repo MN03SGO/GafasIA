@@ -6,19 +6,19 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
 
-from utils.camera import Camera
-from utils.config import config
+from utilidades.camera import Camera
+from utilidades.config import config
 
 class GafasIA:
     def __init__(self):
         self.camera = Camera()
         self.running = False
         print(" Gafas IA inicializadas")
-        print(f" Configuración cargada desde: {config.config_path}")
+        print(f" Configuración cargada desde: {config.config_paclth}")
     
     def test_camera(self):
         #Cmara basica
-        print("\n🎥 Iniciando prueba de cámara...")
+        print("\n Iniciando prueba de cámara...")
         print(" Controles:")
         print("   - Presiona 'q' para salir")
         print("   - Presiona 'i' para información de cámara")

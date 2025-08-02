@@ -1,4 +1,13 @@
 
+#LIberias ocupadas
+#Recomendacion de parte mia, por alguna razon algunas veces no el ("pip install requirements.txt") no se efectua en otras ocasiones si.
+#Posibles problemas 
+#--Red
+#--Algunas veces me salto error por la interpretacion de signo en (torch>=2.0.0), asi que la descarga la hice individual con
+# (<pip install "torch>=2.0.0")
+#--
+#Esas dos situaciones tuve, sepa pollada mia xd,  
+#01/08/2025: -- me dio problema de cv2, en teoria no han sacado soporte para numpy v2
 opencv-python==4.8.1.78
 pytesseract==0.3.10
 pyttsx3==2.90
@@ -7,7 +16,13 @@ torchvision>=0.15.0
 ultralytics>=8.0.0
 face-recognition==1.3.0
 PyYAML==6.0.1
-numpy>=1.24.0
+numpy<2.0,>=1.24.0
 Pillow>=10.0.0
 dlib>=19.24.2
+
+
+
+
+
+
 
