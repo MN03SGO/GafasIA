@@ -1,0 +1,28 @@
+# config/settings.yaml
+camera:
+  device_id: 0
+  width: 640
+  height: 480
+  fps: 30
+
+detection:
+  confidence_threshold: 0.5
+  model_path: "models/yolov8n.pt"
+  
+tts:
+  rate: 150
+  volume: 0.9
+  voice_id: 0
+
+face_recognition:
+  tolerance: 0.6
+  model: "hog"  # hog o cnn
+  known_faces_dir: "assets/images/caras_conocidas" #  Coneccion a yaml config 
+
+ocr:
+  lang: "spa"  # español
+  config: "--psm 6"
+
+app:
+  debug: true
+  log_level: "INFO"

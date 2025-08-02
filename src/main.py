@@ -1,4 +1,3 @@
-
 import cv2
 import sys
 from pathlib import Path
@@ -6,19 +5,19 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
 
-from utilidades.camera import Camera
+from src.utilidades.camara import Camera
 from utilidades.config import config
 
 class GafasIA:
     def __init__(self):
         self.camera = Camera()
         self.running = False
-        print(" Gafas IA inicializadas")
-        print(f" Configuración cargada desde: {config.config_paclth}")
+        print("Gafas IA inicializadas")
+        print(f"Configuración cargada desde: {config.config_path}")
     
     def test_camera(self):
         #Cmara basica
-        print("\n Iniciando prueba de cámara...")
+        print("\nIniciando prueba de cámara...")
         print(" Controles:")
         print("   - Presiona 'q' para salir")
         print("   - Presiona 'i' para información de cámara")
@@ -56,14 +55,14 @@ class GafasIA:
                 # Manejo de teclas
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
-                    print(" Saliendo...")
+                    print("Saliendo...")
                     break
                 elif key == ord('i'):
                     print(f"Info: {info}")
                 elif key == ord('c'):
                     filename = f"capture_{frame_count}.jpg"
                     cv2.imwrite(f"assets/images/{filename}", frame)
-                    print(f" Imagen capturada: {filename}")
+                    print(f"Imagen capturada: {filename}")
         
         except KeyboardInterrupt:
             print("\nDetenido por usuario")
@@ -87,11 +86,11 @@ class GafasIA:
 
 def main():
     print("=" * 50)
-    print(" Asistencia visual")
-    print("   Proyecto de bachillerato by sigaran")
+    print("Asistencia visual")
+    print("Proyecto de bachillerato by sigaran")
     print("=" * 50)
 
-    print(f" Configuración:")
+    print(f"Configuración:")
     print(f"   - Cámara: ID {config.get('camera.device_id')}")
     print(f"   - Resolución: {config.get('camera.width')}x{config.get('camera.height')}")
     print(f"   - Debug: {config.get('app.debug')}")
@@ -100,7 +99,7 @@ def main():
         gafas = GafasIA()
         gafas.run()
     except Exception as e:
-        print(f" Error crítico: {e}")
+        print(f"Error crítico: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
