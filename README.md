@@ -17,9 +17,9 @@ Proyecto de bachillerato donde se plantea la solucion casera para ayudar a perso
   
 -- Herramientas -- 
 * Raspberry Pi 4
-* 2 Esp cam
+* Pi cam 1080p
 * 3 Botones
-* Impresion stl de lentes con compartimiemto de esp cam Y Raspberry
+* Impresion stl de lentes con compartimiemto de Pi cam Y Raspberry
 
 -- Librerias usadas --
 * OpenCV
