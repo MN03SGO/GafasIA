@@ -1,0 +1,32 @@
+# ** CONFIGURACIONES CAMARA
+camara:
+  indice: 0  # Índice de la cámara (0 = cámara principal)
+  backend: "any" # Backend de OpenCV (any, v4l2, gstreamer)
+
+  # *** CUADRO DE IMAGEN 
+  resolucion: 
+    ancho: 640
+    alto: 480
+
+  fps: 30
+
+  brillo: 0
+  contraste: 0
+  saturacion: 0
+  exposicion: -1
+
+# ** CONFIGURACION DE RASPBY
+raspberry_pi:
+  usar_picamera: false       # true para usar picamera2
+  buffer_size: 1             # Tamaño del buffer (menor = menos latencia)
+  flip_horizontal: false     # Voltear imagen horizontalmente
+  flip_vertical: false       # Voltear imagen verticalmente
+
+  capturas: 
+    guardar_automatico: false
+    ruta: "assets/images/"
+    formato: "jpg"
+    calidad: 85
+    incluir_timestamp: true 
+
+# *** DETECCION DE OBJETOS 
