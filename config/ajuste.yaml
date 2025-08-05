@@ -1,9 +1,8 @@
 # ** CONFIGURACIONES CAMARA
 camara:
-  indice: 0  # Índice de la cámara (0 = cámara principal)
+  indice: 0 
   backend: "any" # Backend de OpenCV (any, v4l2, gstreamer)
-
-  # *** CUADRO DE IMAGEN 
+  # ** CUADRO DE IMAGEN 
   resolucion: 
     ancho: 640
     alto: 480
@@ -14,7 +13,6 @@ camara:
   contraste: 0
   saturacion: 0
   exposicion: -1
-
 # ** CONFIGURACION DE RASPBY
 raspberry_pi:
   usar_picamera: false       # true para usar picamera2
@@ -27,6 +25,130 @@ raspberry_pi:
     ruta: "assets/images/"
     formato: "jpg"
     calidad: 85
-    incluir_timestamp: true 
-
+    incluir_timestamp: true  # fecha y hora de la cap
 # *** DETECCION DE OBJETOS 
+deteccion_objetos: 
+  activa: true         # activar/desactivar detección de objetos
+  modelo: "yolov8n"   # modelo usado 
+  
+  confianza_minima: 0.5 
+  iou_threshold: 0.4  # Threshold para Non-Maximum Suppression
+  max_detecciones: 10 # detecciones max por frame
+  # Clases importantes para personas con discapacidad visual
+  clases_prioritarias:
+    # Obstáculos
+    - "person"                 # Personas
+    - "bicycle"               # Bicicletas
+    - "car"                   # Automóviles
+    - "motorcycle"            # Motocicletas
+    - "bus"                   # Autobuses
+    - "truck"                 # Camiones
+    - "chair"                 # Sillas
+    - "couch"                 # Sofás
+    - "bed"                   # Camas
+    - "dining table"          # Mesas
+    - "door"                  # Puertas (si el modelo las detecta)
+    - "stairs"                # Escaleras (si el modelo las detecta)
+    # Objetos cotidianos importantes
+    - "bottle"                # Botellas
+    - "cup"                   # Tazas/vasos
+    - "fork"                  # Tenedores
+    - "knife"                 # Cuchillos
+    - "spoon"                 # Cucharas
+    - "bowl"                  # Tazones
+    - "book"                  # Libros
+    - "laptop"                # Computadoras portátiles
+    - "cell phone"            # Teléfonos celulares
+    - "remote"                # Controles remotos
+    - "keyboard"              # Teclados
+    - "mouse"                 # Ratones de computadora
+    # Electrodomésticos
+    - "microwave"             # Microondas
+    - "oven"                  # Hornos
+    - "toaster"               # Tostadoras
+    - "sink"                  # Lavamanos
+    - "refrigerator"          # Refrigeradores
+    - "tv"                    # Televisores
+  # Traducción de nombres de clases al español
+  traducciones:
+    "person": "persona"
+    "bicycle": "bicicleta" 
+    "car": "automóvil"
+    "motorcycle": "motocicleta"
+    "airplane": "avión"
+    "bus": "autobús"
+    "train": "tren"
+    "truck": "camión"
+    "boat": "barco"
+    "traffic light": "semáforo"
+    "fire hydrant": "hidrante"
+    "stop sign": "señal de alto"
+    "parking meter": "parquímetro"
+    "bench": "banco"
+    "bird": "pájaro"
+    "cat": "gato"
+    "dog": "perro"
+    "horse": "caballo"
+    "sheep": "oveja"
+    "cow": "vaca"
+    "elephant": "elefante"
+    "bear": "oso"
+    "zebra": "cebra"
+    "giraffe": "jirafa"
+    "backpack": "mochila"
+    "umbrella": "paraguas"
+    "handbag": "bolsa"
+    "tie": "corbata"
+    "suitcase": "maleta"
+    "frisbee": "frisbee"
+    "skis": "esquís"
+    "snowboard": "tabla de nieve"
+    "sports ball": "pelota deportiva"
+    "kite": "cometa"
+    "baseball bat": "bate de béisbol"
+    "baseball glove": "guante de béisbol"
+    "skateboard": "patineta"
+    "surfboard": "tabla de surf"
+    "tennis racket": "raqueta de tenis"
+    "bottle": "botella"
+    "wine glass": "copa de vino"
+    "cup": "taza"
+    "fork": "tenedor"
+    "knife": "cuchillo"
+    "spoon": "cuchara"
+    "bowl": "tazón"
+    "banana": "plátano"
+    "apple": "manzana"
+    "sandwich": "sánduwich"
+    "orange": "naranja"
+    "broccoli": "brócoli"
+    "carrot": "zanahoria"
+    "hot dog": "perro caliente"
+    "pizza": "pizza"
+    "donut": "dona"
+    "cake": "pastel"
+    "chair": "silla"
+    "couch": "sofá"
+    "potted plant": "planta en maceta"
+    "bed": "cama"
+    "dining table": "mesa de comedor"
+    "toilet": "inodoro"
+    "tv": "televisor"
+    "laptop": "computadora portátil"
+    "mouse": "ratón de computadora"
+    "remote": "control remoto"
+    "keyboard": "teclado"
+    "cell phone": "teléfono celular"
+    "microwave": "microondas"
+    "oven": "horno"
+    "toaster": "tostadora"
+    "sink": "lavamanos"
+    "refrigerator": "refrigerador"
+    "book": "libro"
+    "clock": "reloj"
+    "vase": "florero"
+    "scissors": "tijeras"
+    "teddy bear": "oso de peluche"
+    "hair drier": "secadora de pelo"
+    "toothbrush": "cepillo de dientes"
+# ** DETECCION DE PERSONAS 
