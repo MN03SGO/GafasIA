@@ -36,39 +36,39 @@ deteccion_objetos:
   max_detecciones: 10 # detecciones max por frame
   # Clases importantes para personas con discapacidad visual
   clases_prioritarias:
-    # Obstáculos
-    - "person"                 # Personas
-    - "bicycle"               # Bicicletas
-    - "car"                   # Automóviles
-    - "motorcycle"            # Motocicletas
-    - "bus"                   # Autobuses
-    - "truck"                 # Camiones
-    - "chair"                 # Sillas
-    - "couch"                 # Sofás
-    - "bed"                   # Camas
-    - "dining table"          # Mesas
-    - "door"                  # Puertas (si el modelo las detecta)
-    - "stairs"                # Escaleras (si el modelo las detecta)
+    # Obstaculos
+    - "person"                 
+    - "bicycle"               
+    - "car"                   
+    - "motorcycle"            
+    - "bus"                   
+    - "truck"                 
+    - "chair"                 
+    - "couch"                
+    - "bed"                  
+    - "dining table"          
+    - "door"                 
+    - "stairs"               
     # Objetos cotidianos importantes
-    - "bottle"                # Botellas
-    - "cup"                   # Tazas/vasos
-    - "fork"                  # Tenedores
-    - "knife"                 # Cuchillos
-    - "spoon"                 # Cucharas
-    - "bowl"                  # Tazones
-    - "book"                  # Libros
-    - "laptop"                # Computadoras portátiles
-    - "cell phone"            # Teléfonos celulares
-    - "remote"                # Controles remotos
-    - "keyboard"              # Teclados
-    - "mouse"                 # Ratones de computadora
+    - "bottle"               
+    - "cup"                   
+    - "fork"                 
+    - "knife"                
+    - "spoon"                 
+    - "bowl"                  
+    - "book"                  
+    - "laptop"                
+    - "cell phone"            
+    - "remote"                
+    - "keyboard"              
+    - "mouse"                
     # Electrodomésticos
-    - "microwave"             # Microondas
-    - "oven"                  # Hornos
-    - "toaster"               # Tostadoras
-    - "sink"                  # Lavamanos
-    - "refrigerator"          # Refrigeradores
-    - "tv"                    # Televisores
+    - "microwave"             
+    - "oven"                  
+    - "toaster"               
+    - "sink"                 
+    - "refrigerator"          
+    - "tv"                    
   # Traducción de nombres de clases al español
   traducciones:
     "person": "persona"
@@ -152,3 +152,154 @@ deteccion_objetos:
     "hair drier": "secadora de pelo"
     "toothbrush": "cepillo de dientes"
 # ** DETECCION DE PERSONAS 
+deteccion_personas:
+  activa: true
+  metodo: "yolo"
+  # HOG (más rápido, menos preciso)
+  hog:
+    win_stride: [8, 8]         # Paso de ventana deslizante
+    padding: [32, 32]          # Padding alrededor de detecciones
+    scale: 1.05                # Factor de escala entre niveles
+    final_threshold: 2         # Threshold final para agrupación
+    
+  #  Cascada (muy rápido, básico)
+  cascada:
+    scale_factor: 1.1          # Factor de escala
+    min_neighbors: 3           # Mínimos vecinos para detección válida
+    min_size: [30, 30]         # Tamaño mínimo de detección
+# ** RECONOCIMIENTO FACIAL LIBRERIA CONFIG
+reconociento_facial: 
+  activa: false
+  rutas_caras_conocidas: src/imagen/rutas_caras_conocidas
+  modelo: "hog"
+  tolerancia: 0.6 
+  anunciar_nombres: true      
+  anunciar_desconocidos: false 
+  guardar_caras_desconocidas: false 
+  encriptar_datos: false     
+# ** RECONOCIMIENTO DE TEXTO (OCR) LIBRERIA CONFIG
+reconocimiento_texto: 
+  activa: false
+  idiomas: ["spa", "eng"] 
+  tesseract: 
+    psm: 6
+    oem: 3
+    config_personalizada: "--psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789áéíóúñüÁÉÍÓÚÑÜ"
+  filtros: #filtros de texto
+    longitud_minima: 3
+    longitud_maxima: 200
+    filtrar_numeros_solos: true
+    filtrar_caracteres_raros: true
+  procesamientno: #OCR
+    escala_grises: true
+    threshold_adaptativo: true
+    blur_gaussiano: false
+    dilatacion: false
+    erosion: false
+    kernel_size: 3
+# ** TEXTO A VOZ (TTS) Y (GTTS)   LIBRERIA CONFIG
+texto_a_voz:
+  motor: "pyttsx3"
+  idioma: "espanish""
+  velociadad: 150
+  volumen: 0.9
+  voz_femenina: true
+  gtts:
+    idioma: "es"              
+    dominio: "com.mx"         
+    velocidad_lenta: false     
+  intervalo_anuncios: 3.0     
+  volumen_master: 0.8         
+  interrumpir_anteriores: false 
+  prioridades: #PRIORIDADES
+    emergencia: 1              
+    persona: 2                 
+    obstaculo: 3              
+    objeto: 4                  
+    texto: 5                   
+    sistema: 6
+# ** INTERFAZ
+interfaz:
+  mostrar_video: true
+  pantalla_completa: false
+  redimnesionable: true
+  mostrar_fps: true
+  mostrar_detecciones: true
+  mostrar_confianza: true 
+  mostrar_nombre_clases: true 
+  mostrar_cordenadad: false
+  colores: 
+    persona:  [0, 255, 0] #VERDE
+    objeto:  [0, 255, 0] #AZUL 
+    texto: [0, 0, 255]  #ROJO 
+    cara_conocida:  [255, 255, 0] #CIAN
+    caras_desconocidad: #AMARILLO
+    fondo_texto: [0, 0, 0] #NEGRO
+  fuente: 
+    tipo: 1 
+    escala: 0.6
+    grosor: 2 
+    suavizado: true 
+# ** TECLAS DE CONTROL
+controles: 
+  salir: "q"
+  ayuda: "h"
+  toggle_objetos: "o"
+  toggle_personas: "p"
+  toggle_ocr: "t"
+  toggle_caras: "f"            
+  capturar_imagen: "c"
+  modo_debug: "d"
+  pausar_video: "space"
+  pantalla_completa: "F11"
+  subir_volume: "+"
+  bajar_volumen: "-"
+  velocidad_voz_mas: "]"
+  velocidad_voz_menos: "["
+# ** DEPURACION
+logging:
+  nivel: "INFO"   # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  archivo: "logs/gafas_ia.log" 
+  archivo_errores: "logs/errores.log" 
+  formato: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  formato_fecha: "%Y-%m-%d %H:%M:%S"
+  rotacion: true             
+  max_size_mb: 10              
+  backup_count: 5             
+  consola: true        
+  colores_consola: true
+# ** RENDIMIENTO
+rendimiento:
+  threads_deteccion: 2
+  buffer_frames: 1
+  raspberry_pi: #OPTIMIZACION DE RASPBY
+    detectado_automaticamente: false
+    u sar_gpu: false 
+    reducir_resolucion: true
+    resolucion_reducida: [320, 240]
+    fps_reducido: 15 
+    optimizar_memoria: true
+  pc_desarrollo: # pc escritorio
+    usar_gpu: true
+    resolucion_completa: [640, 480] 
+    fps_completo: 30 
+    cache_modelos: true
+  avanzado:
+    prefetch_frames: false
+    async_processing: true
+    memory_pool: false
+privacidad: 
+  guardar_capturas: false
+  guardar_audio: false
+  encriptar_caras: false
+  tiempo_retencion_caras: 30
+  log_detecciones_personas: false
+  anonimizar_logs: true
+Experimental:  # Funcionalidades avanzadas (en desarrollo)
+  deteccion_gestos: false
+  reconocimiento_voz: false
+  navegacion_indoor: false 
+  deteccion_obstaculos: false
+  estimacion_distancia: false
+  modelo_personalizado: false #(IA)
+  fine_tuning: false
