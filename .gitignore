@@ -1,0 +1,34 @@
+# Ignorar entornos virtuales
+.venv/
+venv/
+
+# Ignorar archivos temporales de py
+__pycache__/
+*.py[cod]
+*.so
+
+# Archivos de configuración o personales
+*.env
+*.yaml
+config/
+
+# Archivos de logs
+*.log
+
+# Archivos generados por el sistema o editores
+.DS_Store
+*.swp
+
+# Archivos de salida (por ejemplo, videos, audios, capturas)
+*.mp4
+*.avi
+*.wav
+*.jpg
+*.png
+
+# Modelos grandes
+*.pt
+*.onnx
+
+# Carpetas ocultas de sistemas Linux
+.cache/
