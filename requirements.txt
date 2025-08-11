@@ -144,6 +144,8 @@ flake8==6.0.0
 
 # ====== VERSIONES Y COMPATIBILIDAD ======
 # Requisitos mínimos del sistema:
+
+
 # - Python >= 3.8
 # - RAM >= 4GB (recomendado 8GB para desarrollo)
 # - Espacio en disco >= 2GB
