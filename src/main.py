@@ -1,6 +1,4 @@
-"""
-Módulo de detección de objetos usando YOLO para Gafas IA
-"""
+#10/08/2025 PROPENSO A CAMBIOS 
 import cv2
 import numpy as np
 from ultralytics import YOLO
