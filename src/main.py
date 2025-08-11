@@ -8,13 +8,7 @@ from pathlib import Path
 
 class ObjectDetector:
     def __init__(self, model_path: str = "models/yolov8n.pt", confidence: float = 0.5):
-        """
-        Inicializa el detector de objetos
-        
-        Args:
-            model_path: Ruta al modelo YOLO
-            confidence: Umbral de confianza mínimo
-        """
+    
         self.model_path = model_path
         self.confidence = confidence
         self.model = None
@@ -52,34 +46,28 @@ class ObjectDetector:
             # Crear directorio de modelos si no existe
             os.makedirs("models", exist_ok=True)
             
-            print(f"🔄 Cargando modelo YOLO desde: {self.model_path}")
+            print(f"Cargando modelo YOLO desde: {self.model_path}")
             
             # Si no existe el modelo, YOLO lo descargará automáticamente
             if not os.path.exists(self.model_path):
-                print("📥 Descargando modelo YOLOv8n (primera vez)...")
+                print("Descargando modelo YOLOv8n (primera vez)...")
             
             self.model = YOLO(self.model_path)
             self.class_names = self.model.names  # Diccionario {id: nombre}
             
-            print(f"✅ Modelo cargado exitosamente")
-            print(f"📊 Clases disponibles: {len(self.class_names)}")
+            print(f"Modelo cargado exitosamente")
+            print(f"Clases disponibles: {len(self.class_names)}")
             return True
             
         except Exception as e:
-            print(f"❌ Error cargando modelo YOLO: {e}")
+            print(f"Error cargando modelo YOLO: {e}")
             return False
     
     def detect(self, frame: np.ndarray) -> List[Dict]:
-        """
-        Detecta objetos en un frame
-        
-        Args:
-            frame: Frame de imagen
-            
-        Returns:
-            Lista de detecciones con formato:
-            [{'name': str, 'confidence': float, 'bbox': [x1,y1,x2,y2], 'center': [x,y]}]
-        """
+  
+           # Lista de detecciones con formato:
+           # [{'name': str, 'confidence': float, 'bbox': [x1,y1,x2,y2], 'center': [x,y]}]
+     
         if self.model is None:
             return []
         
@@ -119,20 +107,11 @@ class ObjectDetector:
             return detections
             
         except Exception as e:
-            print(f"❌ Error en detección: {e}")
+            print(f"Error en detección: {e}")
             return []
     
     def draw_detections(self, frame: np.ndarray, detections: List[Dict]) -> np.ndarray:
-        """
-        Dibuja las detecciones en el frame
-        
-        Args:
-            frame: Frame original
-            detections: Lista de detecciones
-            
-        Returns:
-            Frame con detecciones dibujadas
-        """
+      
         frame_copy = frame.copy()
         
         for detection in detections:
@@ -169,15 +148,7 @@ class ObjectDetector:
         return frame_copy
     
     def get_detection_summary(self, detections: List[Dict]) -> str:
-        """
-        Genera un resumen en español de las detecciones para TTS
-        
-        Args:
-            detections: Lista de detecciones
-            
-        Returns:
-            Resumen en texto
-        """
+    
         if not detections:
             return "No se detectaron objetos"
         
@@ -208,16 +179,7 @@ class ObjectDetector:
                 return f"Veo {', '.join(summary_parts[:-1])} y {summary_parts[-1]}"
     
     def get_closest_object(self, detections: List[Dict], frame_center: Tuple[int, int]) -> Optional[Dict]:
-        """
-        Encuentra el objeto más cercano al centro del frame
-        
-        Args:
-            detections: Lista de detecciones
-            frame_center: Centro del frame (x, y)
-            
-        Returns:
-            Detección del objeto más cercano o None
-        """
+ 
         if not detections:
             return None
         
