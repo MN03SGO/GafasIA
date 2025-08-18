@@ -9,20 +9,73 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
 
 
 ## Estructura del proyecto 
-06/08/2025  Propenso a modificaciones
+17/08/2025  Propenso a modificaciones
 
 ```javascript
-[Aug  6 23:25]  .
-├── [Aug  6 23:25]  config
-│   └── [Aug  6 23:25]  ajuste.yaml
-├── [Aug  6 23:25]  README.md
-├── [Aug  6 23:25]  requirements.txt
-└── [Aug  6 23:25]  src
-    └── [Aug  6 23:25]  utilidades
-        ├── [Aug  6 23:25]  config.py
-        └── [Aug  6 23:25]  logger.py
+[Aug 17 18:27]  .
+├── [Aug 17 15:24]  config
+│   └── [Aug 17 15:24]  ajuste.yaml
+├── [Aug 17 15:24]  README.md
+├── [Aug 17 15:24]  requirements.txt
+├── [Aug 17 15:24]  src
+│   ├── [Aug 17 15:24]  main.py
+│   └── [Aug 17 15:24]  utilidades
+│       ├── [Aug 17 22:17]  camara.py
+│       ├── [Aug 17 15:24]  config.py
+│       └── [Aug 17 15:24]  logger.py
+└── [Aug 17 19:59]  venv
+    ├── [Aug 17 22:16]  bin
+    │   ├── [Aug 17 15:26]  activate
+    │   ├── [Aug 17 15:26]  activate.csh
+    │   ├── [Aug 17 15:26]  activate.fish
+    │   ├── [Aug 17 15:26]  Activate.ps1
+    │   ├── [Aug 17 21:03]  ccmake
+    │   ├── [Aug 17 21:03]  cmake
+    │   ├── [Aug 17 21:03]  cpack
+    │   ├── [Aug 17 19:59]  cpuinfo
+    │   ├── [Aug 17 21:03]  ctest
+    │   ├── [Aug 17 20:37]  f2py
+    │   ├── [Aug 17 20:37]  f2py3
+    │   ├── [Aug 17 20:37]  f2py3.11
+    │   ├── [Aug 17 18:10]  face_detection
+    │   ├── [Aug 17 18:10]  face_recognition
+    │   ├── [Aug 17 19:59]  fonttools
+    │   ├── [Aug 17 17:59]  gtts-cli
+    │   ├── [Aug 17 19:59]  isympy
+    │   ├── [Aug 17 20:17]  jsonschema
+    │   ├── [Aug 17 21:03]  lit
+    │   ├── [Aug 17 18:03]  markdown-it
+    │   ├── [Aug 17 19:59]  normalizer
+    │   ├── [Aug 17 15:29]  pip
+    │   ├── [Aug 17 15:29]  pip3
+    │   ├── [Aug 17 15:29]  pip3.11
+    │   ├── [Aug 17 22:16]  proton
+    │   ├── [Aug 17 22:16]  proton-viewer
+    │   ├── [Aug 17 20:17]  pyav
+    │   ├── [Aug 17 19:59]  pyftmerge
+    │   ├── [Aug 17 19:59]  pyftsubset
+    │   ├── [Aug 17 18:03]  pygmentize
+    │   ├── [Aug 17 15:26]  python -> /home/sigaran/.pyenv/versions/3.11.9/bin/python
+    │   ├── [Aug 17 15:26]  python3 -> python
+    │   ├── [Aug 17 15:26]  python3.11 -> python
+    │   ├── [Aug 17 22:16]  torchfrtrace
+    │   ├── [Aug 17 22:16]  torchrun
+    │   ├── [Aug 17 19:59]  tqdm
+    │   ├── [Aug 17 19:59]  ttx
+    │   ├── [Aug 17 20:00]  ultralytics
+    │   ├── [Aug 17 21:03]  wheel
+    │   └── [Aug 17 20:00]  yolo
+    ├── [Aug 17 18:00]  include
+    │   ├── [Aug 17 15:26]  python3.11
+    │   └── [Aug 17 18:00]  site
+    ├── [Aug 17 15:26]  lib
+    │   └── [Aug 17 15:26]  python3.11
+    ├── [Aug 17 15:26]  lib64 -> lib
+    ├── [Aug 17 15:26]  pyvenv.cfg
+    └── [Aug 17 19:59]  share
+        └── [Aug 17 19:59]  man
 
-4 directories, 5 files
+14 directories, 48 files
 
 ```
 
