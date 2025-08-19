@@ -9,28 +9,39 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
 
 
 ## Estructura del proyecto 
-17/08/2025  Propenso a modificaciones
+18/08/2025  Propenso a modificaciones
 
 ```javascript
-[Aug 17 18:27]  .
+Aug 18 00:37]  .
 ├── [Aug 17 15:24]  config
 │   └── [Aug 17 15:24]  ajuste.yaml
-├── [Aug 17 15:24]  README.md
+├── [Aug 18 00:36]  README.md
 ├── [Aug 17 15:24]  requirements.txt
-├── [Aug 17 15:24]  src
+├── [Aug 18 18:17]  src
+│   ├── [Aug 18 18:18]  audio
+│   │   └── [Aug 18 18:18]  texto_a_voz.py
+│   ├── [Aug 18 16:47]  deteccion
+│   │   ├── [Aug 18 00:31]  detector_objetos.py
+│   │   └── [Aug 18 16:47]  __init__.py
+│   ├── [Aug 18 16:48]  __init__.py
 │   ├── [Aug 17 15:24]  main.py
 │   └── [Aug 17 15:24]  utilidades
-│       ├── [Aug 17 22:17]  camara.py
+│       ├── [Aug 17 23:57]  camara.py
 │       ├── [Aug 17 15:24]  config.py
 │       └── [Aug 17 15:24]  logger.py
 └── [Aug 17 19:59]  venv
-    ├── [Aug 17 22:16]  bin
+    ├── [Aug 17 23:10]  bin
     │   ├── [Aug 17 15:26]  activate
     │   ├── [Aug 17 15:26]  activate.csh
     │   ├── [Aug 17 15:26]  activate.fish
     │   ├── [Aug 17 15:26]  Activate.ps1
+    │   ├── [Aug 17 23:10]  black
+    │   ├── [Aug 17 23:10]  blackd
     │   ├── [Aug 17 21:03]  ccmake
     │   ├── [Aug 17 21:03]  cmake
+    │   ├── [Aug 17 23:10]  coverage
+    │   ├── [Aug 17 23:10]  coverage3
+    │   ├── [Aug 17 23:10]  coverage-3.11
     │   ├── [Aug 17 21:03]  cpack
     │   ├── [Aug 17 19:59]  cpuinfo
     │   ├── [Aug 17 21:03]  ctest
@@ -39,6 +50,7 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
     │   ├── [Aug 17 20:37]  f2py3.11
     │   ├── [Aug 17 18:10]  face_detection
     │   ├── [Aug 17 18:10]  face_recognition
+    │   ├── [Aug 17 23:10]  flake8
     │   ├── [Aug 17 19:59]  fonttools
     │   ├── [Aug 17 17:59]  gtts-cli
     │   ├── [Aug 17 19:59]  isympy
@@ -52,14 +64,18 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
     │   ├── [Aug 17 22:16]  proton
     │   ├── [Aug 17 22:16]  proton-viewer
     │   ├── [Aug 17 20:17]  pyav
+    │   ├── [Aug 17 23:10]  pycodestyle
+    │   ├── [Aug 17 23:10]  pyflakes
     │   ├── [Aug 17 19:59]  pyftmerge
     │   ├── [Aug 17 19:59]  pyftsubset
     │   ├── [Aug 17 18:03]  pygmentize
+    │   ├── [Aug 17 23:10]  py.test
+    │   ├── [Aug 17 23:10]  pytest
     │   ├── [Aug 17 15:26]  python -> /home/sigaran/.pyenv/versions/3.11.9/bin/python
     │   ├── [Aug 17 15:26]  python3 -> python
     │   ├── [Aug 17 15:26]  python3.11 -> python
-    │   ├── [Aug 17 22:16]  torchfrtrace
-    │   ├── [Aug 17 22:16]  torchrun
+    │   ├── [Aug 17 22:29]  torchfrtrace
+    │   ├── [Aug 17 22:29]  torchrun
     │   ├── [Aug 17 19:59]  tqdm
     │   ├── [Aug 17 19:59]  ttx
     │   ├── [Aug 17 20:00]  ultralytics
@@ -75,7 +91,8 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
     └── [Aug 17 19:59]  share
         └── [Aug 17 19:59]  man
 
-14 directories, 48 files
+16 directories, 62 files
+
 
 ```
 
