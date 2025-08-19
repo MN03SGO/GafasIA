@@ -12,16 +12,18 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
 18/08/2025  Propenso a modificaciones
 
 ```javascript
-Aug 18 00:37]  .
+[Aug 19 12:23]  .
 ├── [Aug 17 15:24]  config
 │   └── [Aug 17 15:24]  ajuste.yaml
-├── [Aug 18 00:36]  README.md
+├── [Aug 19 12:23]  README.md
 ├── [Aug 17 15:24]  requirements.txt
 ├── [Aug 18 18:17]  src
-│   ├── [Aug 18 18:18]  audio
-│   │   └── [Aug 18 18:18]  texto_a_voz.py
-│   ├── [Aug 18 16:47]  deteccion
+│   ├── [Aug 19 12:29]  audio
+│   │   ├── [Aug 19 12:29]  __init__.py
+│   │   └── [Aug 19 12:37]  texto_a_voz.py
+│   ├── [Aug 19 12:46]  deteccion
 │   │   ├── [Aug 18 00:31]  detector_objetos.py
+│   │   ├── [Aug 19 16:14]  detector_personas.py
 │   │   └── [Aug 18 16:47]  __init__.py
 │   ├── [Aug 18 16:48]  __init__.py
 │   ├── [Aug 17 15:24]  main.py
@@ -91,7 +93,7 @@ Aug 18 00:37]  .
     └── [Aug 17 19:59]  share
         └── [Aug 17 19:59]  man
 
-16 directories, 62 files
+16 directories, 64 files
 
 
 ```
