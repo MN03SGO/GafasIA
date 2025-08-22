@@ -455,3 +455,6 @@ if __name__ == "__main__":
     print(f"CPUs: {hardware.get('cpu_count', 'Desconocido')}")
     
     print("Prueba del sistema de configuración completada")
+
+
+
