@@ -9,30 +9,42 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
 
 
 ## Estructura del proyecto 
-18/08/2025  Propenso a modificaciones
+20/08/2025  Propenso a modificaciones
 
 ```javascript
-[Aug 19 12:23]  .
+[Aug 21 19:52]  .
 ├── [Aug 17 15:24]  config
 │   └── [Aug 17 15:24]  ajuste.yaml
-├── [Aug 19 12:23]  README.md
+├── [Aug 21 17:30]  logs
+│   ├── [Aug 21 17:30]  errores.log
+│   └── [Aug 21 17:30]  gafas_ia.log
+├── [Aug 21 17:01]  README.md
 ├── [Aug 17 15:24]  requirements.txt
-├── [Aug 18 18:17]  src
+├── [Aug 21 17:30]  src
 │   ├── [Aug 19 12:29]  audio
 │   │   ├── [Aug 19 12:29]  __init__.py
 │   │   └── [Aug 19 12:37]  texto_a_voz.py
-│   ├── [Aug 19 12:46]  deteccion
-│   │   ├── [Aug 18 00:31]  detector_objetos.py
-│   │   ├── [Aug 19 16:14]  detector_personas.py
+│   ├── [Aug 21 18:25]  controladores
+│   │   ├── [Aug 21 18:25]  gestor_principal.py
+│   │   └── [Aug 21 17:11]  __init__.py
+│   ├── [Aug 21 17:13]  deteccion
+│   │   ├── [Aug 21 17:17]  detector_objetos.py
+│   │   ├── [Aug 21 17:15]  detector_personas.py
 │   │   └── [Aug 18 16:47]  __init__.py
 │   ├── [Aug 18 16:48]  __init__.py
+│   ├── [Aug 21 17:11]  interfaz
+│   │   └── [Aug 21 17:11]  __init__.py
 │   ├── [Aug 17 15:24]  main.py
-│   └── [Aug 17 15:24]  utilidades
+│   ├── [Aug 21 17:30]  __pycache__
+│   │   └── [Aug 21 17:30]  __init__.cpython-311.pyc
+│   └── [Aug 21 17:30]  utilidades
 │       ├── [Aug 17 23:57]  camara.py
-│       ├── [Aug 17 15:24]  config.py
-│       └── [Aug 17 15:24]  logger.py
+│       ├── [Aug 21 19:52]  config.py
+│       ├── [Aug 21 17:11]  __init__.py
+│       ├── [Aug 17 15:24]  logger.py
+│       └── [Aug 21 17:30]  __pycache__
 └── [Aug 17 19:59]  venv
-    ├── [Aug 17 23:10]  bin
+    ├── [Aug 19 18:48]  bin
     │   ├── [Aug 17 15:26]  activate
     │   ├── [Aug 17 15:26]  activate.csh
     │   ├── [Aug 17 15:26]  activate.fish
@@ -47,9 +59,7 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
     │   ├── [Aug 17 21:03]  cpack
     │   ├── [Aug 17 19:59]  cpuinfo
     │   ├── [Aug 17 21:03]  ctest
-    │   ├── [Aug 17 20:37]  f2py
-    │   ├── [Aug 17 20:37]  f2py3
-    │   ├── [Aug 17 20:37]  f2py3.11
+    │   ├── [Aug 19 18:48]  f2py
     │   ├── [Aug 17 18:10]  face_detection
     │   ├── [Aug 17 18:10]  face_recognition
     │   ├── [Aug 17 23:10]  flake8
@@ -93,7 +103,7 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
     └── [Aug 17 19:59]  share
         └── [Aug 17 19:59]  man
 
-16 directories, 64 files
+21 directories, 69 files
 
 
 ```
