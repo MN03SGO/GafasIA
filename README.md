@@ -9,23 +9,24 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
 
 
 ## Estructura del proyecto 
-20/08/2025  Propenso a modificaciones
+22/08/2025  Propenso a modificaciones
 
 ```javascript
-[Aug 21 19:52]  .
+[Aug 21 21:26]  .
 ├── [Aug 17 15:24]  config
 │   └── [Aug 17 15:24]  ajuste.yaml
 ├── [Aug 21 17:30]  logs
 │   ├── [Aug 21 17:30]  errores.log
 │   └── [Aug 21 17:30]  gafas_ia.log
-├── [Aug 21 17:01]  README.md
+├── [Aug 21 21:26]  README.md
+├── [Aug 21 21:28]  rebased
 ├── [Aug 17 15:24]  requirements.txt
 ├── [Aug 21 17:30]  src
 │   ├── [Aug 19 12:29]  audio
 │   │   ├── [Aug 19 12:29]  __init__.py
 │   │   └── [Aug 19 12:37]  texto_a_voz.py
-│   ├── [Aug 21 18:25]  controladores
-│   │   ├── [Aug 21 18:25]  gestor_principal.py
+│   ├── [Aug 21 21:26]  controladores
+│   │   ├── [Aug 22 22:12]  gestor_principal.py
 │   │   └── [Aug 21 17:11]  __init__.py
 │   ├── [Aug 21 17:13]  deteccion
 │   │   ├── [Aug 21 17:17]  detector_objetos.py
@@ -103,7 +104,7 @@ Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión d
     └── [Aug 17 19:59]  share
         └── [Aug 17 19:59]  man
 
-21 directories, 69 files
+21 directories, 70 files
 
 
 ```
