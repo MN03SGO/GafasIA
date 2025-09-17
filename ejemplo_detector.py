@@ -29,7 +29,7 @@ def main():
         print("Cámara inicializada. Presiona 'q' para salir, 's' para descripción de audio")
         
         ultimo_tiempo = time.time()
-        intervalo_deteccion = 0  # Detectar cada segundos
+        intervalo_deteccion = 0  # Detectar cada segundo, intenta probar si esta bien en 0 o aumentale de  0 > 10 max. Por el momento me gusta el 0 > 2
         
         while True:
             # Capturar frame
@@ -87,6 +87,8 @@ def main():
             cap.release()
         cv2.destroyAllWindows()
 
+        # OBVIAR ESTA PARTE POR EL MOMENTO "16 / 10 / 2025"
+
 def probar_con_imagen_estatica(ruta_imagen: str):
     print(f" Probando con imagen: {ruta_imagen}")
     
@@ -115,7 +117,6 @@ def probar_con_imagen_estatica(ruta_imagen: str):
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    # Elegir modo de prueba
     modo = input("Selecciona modo de prueba:\n1. Cámara en tiempo real\n2. Imagen estática\nOpción (1/2): ")
     
     if modo == "2":
