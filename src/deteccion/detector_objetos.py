@@ -1,4 +1,4 @@
-# src/deteccion/detector_objetos.py
+
 import cv2
 import numpy as np
 from ultralytics import YOLO
@@ -8,23 +8,17 @@ import time
 
 class DetectorObjetos:
     def __init__(self, modelo_path: str = 'yolov8n.pt', confianza_minima: float = 0.5):
-        """
-        Inicializa el detector de objetos con YOLOv8
+    
+        print("Inicializando detector de objetos...")
         
-        Args:
-            modelo_path: Ruta al modelo YOLO (usa 'yolov8n.pt' para descarga automática)
-            confianza_minima: Umbral mínimo de confianza para detecciones
-        """
-        print("🔄 Inicializando detector de objetos...")
-        
-        # Configuración del dispositivo (CPU para Raspberry Pi)
-        self.dispositivo = 'cpu'  # Cambiar a 'cuda' si tienes GPU
+        # Configuración CPU  Raspberry Pi
+        self.dispositivo = 'cpu'  # Cambiar a cuda en Pc Deb13 principal 
         
         # Cargar modelo YOLO
         self.modelo = YOLO(modelo_path)
         self.confianza_minima = confianza_minima
         
-        # Diccionario de etiquetas en español (COCO dataset)
+        # diccionario de sacado de coco de etiquetas en español (COCO dataset)
         self.etiquetas_es = {
             0: 'persona', 1: 'bicicleta', 2: 'automóvil', 3: 'motocicleta', 4: 'avión',
             5: 'autobús', 6: 'tren', 7: 'camión', 8: 'barco', 9: 'semáforo',
@@ -59,21 +53,11 @@ class DetectorObjetos:
             0: 'persona'           # Personas cercanas
         }
         
-        print("✅ Detector inicializado correctamente")
+        print("Detector inicializado correctamente")
     
     def detectar(self, imagen: np.ndarray, solo_prioritarios: bool = True) -> List[Dict]:
-        """
-        Detecta objetos en una imagen
-        
-        Args:
-            imagen: Imagen en formato numpy array (BGR)
-            solo_prioritarios: Si True, solo reporta objetos prioritarios
-            
-        Returns:
-            Lista de diccionarios con información de detecciones
-        """
+    
         try:
-            # Ejecutar detección
             resultados = self.modelo(imagen, conf=self.confianza_minima, verbose=False)
             
             detecciones = []
@@ -98,7 +82,7 @@ class DetectorObjetos:
                         centro_y = (y1 + y2) / 2
                         area = (x2 - x1) * (y2 - y1)
                         
-                        # Determinar posición relativa
+                        #posición relativa
                         altura_img, ancho_img = imagen.shape[:2]
                         posicion = self._calcular_posicion(centro_x, centro_y, ancho_img, altura_img)
                         
@@ -124,11 +108,11 @@ class DetectorObjetos:
             return detecciones
             
         except Exception as e:
-            print(f"❌ Error en detección: {e}")
+            print(f" Error en detección: {e}")
             return []
     
     def _calcular_posicion(self, centro_x: float, centro_y: float, ancho: int, alto: int) -> str:
-        """Calcula la posición relativa del objeto en la imagen"""
+    
         # Dividir imagen en 9 regiones (3x3)
         tercio_ancho = ancho / 3
         tercio_alto = alto / 3
@@ -157,7 +141,6 @@ class DetectorObjetos:
             return f"{vertical} a la {horizontal}"
     
     def _estimar_distancia(self, area_objeto: float, area_total: float) -> str:
-        """Estima distancia relativa basada en el área del objeto"""
         porcentaje_area = (area_objeto / area_total) * 100
         
         if porcentaje_area > 25:
@@ -170,15 +153,7 @@ class DetectorObjetos:
             return "lejos"
     
     def generar_descripcion_audio(self, detecciones: List[Dict]) -> str:
-        """
-        Genera una descripción en texto natural para síntesis de voz
-        
-        Args:
-            detecciones: Lista de detecciones del método detectar()
-            
-        Returns:
-            Texto descriptivo para convertir a audio
-        """
+    
         if not detecciones:
             return "No se detectan objetos en este momento"
         
@@ -186,7 +161,7 @@ class DetectorObjetos:
             det = detecciones[0]
             return f"Detecto {det['nombre']} {det['posicion']}, {det['distancia_relativa']}"
         
-        # Múltiples detecciones
+        # multiple deteccion
         descripciones = []
         for det in detecciones:
             descripciones.append(f"{det['nombre']} {det['posicion']}")
@@ -197,16 +172,7 @@ class DetectorObjetos:
             return f"Detecto {len(descripciones)} objetos: {', '.join(descripciones[:2])} y otros más"
     
     def dibujar_detecciones(self, imagen: np.ndarray, detecciones: List[Dict]) -> np.ndarray:
-        """
-        Dibuja las detecciones en la imagen para debugging visual
-        
-        Args:
-            imagen: Imagen original
-            detecciones: Lista de detecciones
-            
-        Returns:
-            Imagen con las detecciones dibujadas
-        """
+    
         imagen_resultado = imagen.copy()
         
         for det in detecciones:
