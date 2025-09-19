@@ -63,7 +63,7 @@ def main():
             else:
                 frame_con_detecciones = frame
             
-            # Mostrar imagen (útil para desarrollo, quitar en producción)
+            # Mostrar imagen 
             cv2.imshow('Gafas IA - Detector de Objetos', frame_con_detecciones)
             
             key = cv2.waitKey(1) & 0xFF

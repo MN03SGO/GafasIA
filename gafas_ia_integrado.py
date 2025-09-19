@@ -7,7 +7,7 @@ from src.audio.sintetizador_voz import SintetizadorVoz
 
 class GafasIA:
     def __init__(self):
-        print(" Iniciando RasVision...")
+        print("Iniciando RasVision...")
         
     
         self.detector = DetectorObjetos(
@@ -40,7 +40,7 @@ class GafasIA:
             try:
                 self.camara = cv2.VideoCapture(indice)
                 if self.camara.isOpened():
-                    print(f" Cámara {indice} inicializada correctamente")
+                    print(f"Cámara {indice} inicializada correctamente")
                     break
                 else:
                     self.camara.release()
@@ -92,10 +92,10 @@ class GafasIA:
                     
                     #  comandos de teclado
                     if key == ord('q'):
-                        print(" Cerrando sistema...")
+                        print("Cerrando sistema...")
                         break
                     elif key == ord('a'):
-                        print("🔍 Análisis forzado...")
+                        print("Análisis forzado...")
                         self._analizar_frame(frame, forzado=True)
                     elif key == ord('v'):
                         self._ajustar_volumen()
@@ -124,7 +124,7 @@ class GafasIA:
             detecciones = self.detector.detectar(frame, solo_prioritarios=True)
             tiempo_deteccion = time.time() - inicio_deteccion
             
-            print(f"⏱Detección completada en {tiempo_deteccion:.2f}s - {len(detecciones)} objetos")
+            print(f"-Detección completada en {tiempo_deteccion:.2f}s - {len(detecciones)} objetos")
             
             if forzado:
                 # En análisis forzado
@@ -234,7 +234,6 @@ class GafasIA:
 
 
 def main():
-    """Función principal"""
     print("=" * 50)
     print(" RasVision ")
     print("   Desarrollado para personas con discapacidad visual")
