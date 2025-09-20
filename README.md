@@ -1,6 +1,6 @@
 <H1> 
   Trabajar en el readme 
-costero x pijita amor verdadero y apasionado 
+  costero x pijita amor verdadero y apasionado 
 </H1>
 
 19/09/2025
