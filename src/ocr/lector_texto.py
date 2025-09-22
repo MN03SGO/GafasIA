@@ -170,10 +170,173 @@ class LectorTexto:
                         'palabras_importantes':50,
                         'direcciones':40,
                         'precios':35,
-                
                         'horario':30,
-
+                        'numero_telefono':25,
+                        'titulo_importante':20,
+                        'establecimiento':15,
+                        'direccion':15
                     }
+                    prioridad += bonificaciones.get(categoria, 0)
+                    if 5 <=  len(texto) <= 30:
+                        prioridad +=10
+                    if len(texto) > 100:
+                        prioridad -=20 
+                    if len (texto)>100:
+                        prioridad -=20
+                    return prioridad
+                
+                def _limpiar_texto(self, texto: str) -> str:
+                    corecciones = {
+                        'rn': 'm',
+                        'n1': 'ñ',
+                        '0': 'o',
+                        '1': 'l'
+                    }
+                    for error, correcion in corecciones.items():
+                        patron = rf'(?<=[a-zA-ZáéíóúñÑ]){re.escape(error)}(?=[a-zA-ZáéíóúñÑ])' 
+                        texto_limpio = re.sub(patron, correcion, texto_limpio)
+                        return texto_limpio
+                
+                def _calcular_posicion_texto(self, centro_x: int, centro_y: int, ancho:int, alto: int) -> str:
+                    tercio_ancho  = ancho / 3
+                    tercio_alto = alto / 3
+
+                    if centro_x < tercio_ancho:
+                        horizontal = "izquierda"
+                    elif centro_x < 2 * tercio_ancho:
+                        horizontal = "centro"
+                    else:
+                        horizontal = "derecha"
+                    if centro_y < tercio_alto:
+                        vertical = "arriba"
+                    elif centro_y < 2 * tercio_alto:
+                        vertical = "medio"
+                    else: 
+                        vertical = "abajo"
+                    if horizontal == "centro" and vertical == "medio":
+                        return "en el centro"
+                    elif horizontal == "centro":
+                        return f"en la parte{vertical}"
+                    elif vertical == "medio":
+                        return f"a la {horizontal}"
+                    else:
+                        return f"{vertical} a la {horizontal}"
+                    
+                def generar_descripcion_audio(self, textos: List[Dict], modo:str ='resumen') -> str:
+                    if not textos:
+                        return  "No se detecta texto legible en la imagen"
+                    if modo == 'prioritario':
+                        texto_principal = texto[0]
+                        return f"Textos detectados: {texto_principal['texto']}"
+                    elif modo == 'resumen':
+                        if len(textos) == 1:
+                            return f"Detecto el texto: {textos[0]['textos']}"
+                        elif len (textos) <= 3:
+                            textos_str = ", ".join([t ['textos']for t in textos] )
+                            return f"Detecto los textos:{textos_str}"
+                        else:
+                            texto_principal = textos[0]['texto']
+                            return f"Detecto {len(textos)} textos. El  principal es: {texto_principal}"
+                        
+                    else: 
+                        descripciones = []
+                        for i, texto in enumerate(textos[:5],1): 
+                            descripciones.append(f"{texto['texto']}{texto['posicion']}")
+                            
+                            if len(texto) <=5: 
+                                return f"Textos detectados: {'.'.join(descripciones)}"
+                            else:
+                                return f"Textos detectados: {'.'.join(descripciones)} y {len(textos)-5} mas"
+                            
+                def dibujar_texto_detectado(self, imagen: np.ndarray, textos: List[Dict]) -> np.ndarray: # ARREGLO DEL DIBUJADO EN RECTAGULO
+                    imagen_resultado = imagen.copy()
+                    for i, textos_info  in enumerate(textos):
+                        coords = textos_info['coordenadas']
+                        x, y, w, h = coords['x'], coords['y'], coords['ancho'], coords['alto']
+                        # Color basado en prioridad
+                        if textos_info['prioridad'] > 80:
+                            color = (0,255,0) # color verde para alta prioridad
+                        elif textos_info['prioridad'] > 50:
+                            color = (255,238,0) # color amarillo para medio propiedad
+                        else:
+                            color = (255,0,0) # rojo para baja prioridad
+                        cv2.rectangle(imagen_resultado, (x, y), (x + w, y + h), color, 2)
+
+                        texto_mostrar = textos_info['texto'][:30] 
+                        if len (textos_info['texto']) > 30:
+                            texto_mostrar += "..."
+                        etiqueta = f"{i+1}: {texto_mostrar}'({textos_info['confianza']}%)"
+                        (w_texto, h_texto), _ = cv2.getTextSize(etiqueta, cv2.FONT_HERSHEY_SIMPLEX, 0.5,1)
+                        cv2.rectangle(imagen_resultado, (x,y - h_texto - 5 ), (x + w_texto, y), color, -1)
+                        #texto
+                        cv2.putText(imagen_resultado, etiqueta, (x, y - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+                    return imagen_resultado
+                
+                def leer_texto_continuo(self, imagen: np.ndarray, velocidad_lectura: str = 'normal') ->List[str]:
+                    textos = self.detectar_textos(imagen, mejorar_imagen = True)
+                    if not textos: 
+                        return ["No se detecto texto en el documento"]
+                    
+                    textos_ordenados = sorted(textos, key=lambda x: (x['centro']['y'], x['centro']['x']))
+
+                    fragmentos = []
+                    fragmento_actual = []
+
+                    for textos in textos_ordenados:
+                        fragmento_actual.append(texto['texto'])
+
+                        texto_fragmento = ' '.join(fragmento_actual)
+                        if len(texto_fragmento) > 100 or texto['texto'].endswith('.'):
+                            fragmentos.append(texto_fragmento)
+                            fragmento_actual = []
+                    if fragmento_actual:
+                        fragmentos.append(' '.join(fragmento_actual))
+
+                    return fragmentos if fragmentos else ["No se pudo procesar el texto del documento"] 
+
+
+
+
+
+                            
+
+
+
+
+                        
+
+
+
+                    
+
+
+                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    
+
+
+
+
+
+
+
+
+                        
+
+
 
 
 
