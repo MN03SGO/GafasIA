@@ -39,7 +39,7 @@ class LectorTexto:
 
         print("Sistema OCR de RasVision iniciado...")
 
-        def detectar_texto(self, imagen: np.ndarray, mejorar_imagen: bool = True) -> Lis[Dict]:
+        def detectar_texto(self, imagen: np.ndarray, mejorar_imagen: bool = True) -> List[Dict]:
             if not self.disponibles:
                 print("Sistema OCR, no disponible")
                 return[]
@@ -105,10 +105,76 @@ class LectorTexto:
             altura_img, ancho_img = forma_imagen[:2]
             
             for i in range(len(datos_ocr['text'])):
-                textos = datos_ocr['text'][i].strip()
+                texto = datos_ocr['text'][i].strip()
                 confianza = int(datos_ocr['conf'][i]) if datos_ocr['conf'][i] != -1 else 0
+                if confianza < self.confianza_minima:
+                    continue
+                if len(texto) < 2:
+                    if self.es_ruido(texto):
+                        continue
+                    x,y,w,h  = (datos_ocr['left'][i],datos_ocr['top'][i],
+                    datos_ocr['width'][i], datos_ocr['height'][i])
+                    #posicion relativa 
+                    centro_x =  x + y // 2
+                    centro_y = y + h //2
+                    posicion = self.calcular_posicion_texto(centro_x, centro_y, ancho_img, altura_img)
+                    categoria = self._categorizar_texto(texto)
+                    texto_limpio = self._limpiar_texto(texto)
+                    detecteccion_texto = {
+                        'texto': texto_limpio, 
+                        'texto_original': texto, 
+                        'confianza':confianza,
+                        'categotia':categoria,
+                        'cordenadas': centro_x, 'y': centro_y,
+                        'prioridad': self._calcular_prioridad(texto_limpio, categoria, confianza)
+                    }
+                    textos_detectados.append(detecteccion_texto)
+                    textos_detectados.sort(key=lambda x: x['prioridad'], reverse=True)
+                    return textos_detectados
                 
+                def _es_ruido(self, texto: str)-> bool: 
+                    for patron_ruido in self.palabras_ruido['ruido_ocr']:
+                        if patron_ruido in texto:
+                            return True
+                    for patron  in self.palabras_ruido['caracteres_sueltos']:
+                        if re.match(patron, texto):
+                            return True
+                    for patron in self.palabras_ruido['fragmentos']:
+                        if re.match(patron, texto):
+                            return True
+                    simbolos = sum(1 for c in texto if not c.lsalnum()and c != '') #Detecta texto con simbolos
+                    if simbolos > len(texto)*0.7: # 70% de deteccion de simbolos
+                        return True   
+
+                    return False   
                 
+                def _categorizar_texto(self, texto: str)->str:#Divide el texto detectado por categoria 21/09/2025
+                    texto_lower = texto.lower()
+                    for categoria, patron in self.patrones_utiles.items():
+                        return categoria
+                    if len(texto) > 50:
+                        return 'texto_largo'
+                    elif any(palabra in texto_lower for palabra in ['calle', 'avenida', 'boulevard']):
+                        return 'direccion'
+                    elif any(palabra in texto_lower for palabra in ['tienda', 'restaurante', 'farmacia']):
+                        return 'establecimiento'
+                    elif texto.isupper() and len(texto) > 3:
+                        return 'titulo_importante'
+                    else:
+                        return 'texto_general' 
+                    
+
+                def _calcular_prioridad(self, texto: str, categoria: str, confianza) -> int: 
+                    prioridad = confianza 
+                    bonificaciones = {
+                        'palabras_importantes':50,
+                        'direcciones':40,
+                        'precios':35,
+                
+                        'horario':30,
+
+                    }
+
 
 
 
