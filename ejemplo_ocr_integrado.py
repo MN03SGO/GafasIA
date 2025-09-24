@@ -1,4 +1,3 @@
-# ejemplo_ocr_integrado.py - Sistema completo con detección de objetos y OCR
 import cv2
 import time
 import signal
