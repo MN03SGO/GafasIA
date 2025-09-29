@@ -26,3 +26,4 @@ Propenso a cambios 28/09/2025
 
 8 directories, 8 files
 ```
+![15a4b14c-da9a-4dea-b511-cd47723c10b9](https://github.com/user-attachments/assets/149c5e11-3454-4af0-8de7-ebbb1bd4c242)
