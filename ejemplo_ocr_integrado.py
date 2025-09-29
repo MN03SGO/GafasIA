@@ -8,49 +8,45 @@ from src.audio.sintetizador_voz import SintetizadorVoz
 
 class GafasIACompleto:
     def __init__(self):
-        
-        print("Iniciando sistema Gafas IA Completo...")
+        print("RasVision  iniciando...")
         self.detector = DetectorObjetos(
             modelo_path='yolov8n.pt',
-            confianza_minima=0.  #**Prpenso a cambiar  
+            confianza_minima=0.5
         )
         self.lector_ocr = LectorTexto(
-            idioma='spa', 
+            idioma='spa',
             confianza_minima=40
         )
         self.sintetizador = SintetizadorVoz(
             idioma='es',
-            velocidad=180, #**Prpenso a cambiar  
-            volumen=0.8  #**Prpenso a cambiar 
+            velocidad=180,
+            volumen=0.8
         )
-        # Configuración de operación
         self.modo_actual = 'objetos'  # 'objetos', 'texto', 'ambos'
-        self.intervalo_deteccion = 3   #**Prpenso a cambiar  \
-        self.ultimo_analisis = 0  #**Prpenso a cambiar 
+        self.intervalo_deteccion = 3
+        self.ultimo_analisis = 0
         self.camara = None
-        self.ejecutando = False
+        self.ejecutando = False  
         signal.signal(signal.SIGINT, self._manejador_cierre)
         signal.signal(signal.SIGTERM, self._manejador_cierre)
         
-        print("Sistema Gafas IA Completo inicializado")
+        print("Sistema RasVision completo")
     
     def iniciar_camara(self):
-        print(" Iniciando camara..")
-        
+        print("Abriendo camara")
         for indice in [0, 1, 2]:
             try:
                 self.camara = cv2.VideoCapture(indice)
                 if self.camara.isOpened():
-                    print(f"Cámara {indice} inicializada")
+                    print(f"Camara {indice} inicializada")
                     break
                 else:
                     self.camara.release()
             except:
                 continue
         else:
-            raise Exception("No se pudo inicializar ninguna cámara")
-        
-        #Configuracion de camara optimizada 
+            raise Exception("No se pudo abrir la camara")
+        # Configuración optimizada, para la laptop y la raspby
         self.camara.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.camara.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         self.camara.set(cv2.CAP_PROP_FPS, 15)
@@ -63,10 +59,8 @@ class GafasIACompleto:
             self.iniciar_camara()
             self.sintetizador.decir_inicio()
             time.sleep(2)
-            
             self.ejecutando = True
-            self._mostrar_controles()
-            
+            self._mostrar_controles() 
             while self.ejecutando:
                 ret, frame = self.camara.read()
                 if not ret:
@@ -75,6 +69,7 @@ class GafasIACompleto:
                 
                 tiempo_actual = time.time()
                 frame_a_mostrar = frame.copy()
+                # Análisis automatico según el modo
                 if tiempo_actual - self.ultimo_analisis >= self.intervalo_deteccion:
                     if self.modo_actual == 'objetos':
                         detecciones = self._analizar_objetos(frame)
@@ -84,6 +79,7 @@ class GafasIACompleto:
                         textos = self._analizar_texto(frame)
                         if modo_visual and textos:
                             frame_a_mostrar = self.lector_ocr.dibujar_texto_detectado(frame, textos)
+                    
                     elif self.modo_actual == 'ambos':
                         detecciones = self._analizar_objetos(frame)
                         textos = self._analizar_texto(frame)
@@ -92,35 +88,32 @@ class GafasIACompleto:
                                 frame_a_mostrar = self.detector.dibujar_detecciones(frame_a_mostrar, detecciones)
                             if textos:
                                 frame_a_mostrar = self.lector_ocr.dibujar_texto_detectado(frame_a_mostrar, textos)
-                    
                     self.ultimo_analisis = tiempo_actual
                 
-                if modo_visual:
-                    #información del modo actual en la imagen
+                if modo_visual: #BTON, del modo visual
                     texto_modo = f"Modo: {self.modo_actual.upper()}"
                     cv2.putText(frame_a_mostrar, texto_modo, (10, 30), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
                     
-                    cv2.imshow('RasVision completo', frame_a_mostrar)
+                    cv2.imshow('RasVision Completo', frame_a_mostrar)
                     key = cv2.waitKey(1) & 0xFF
                     
-                    # Controles de teclado
                     if key == ord('q'):
                         print("Cerrando sistema...")
                         break
-                    elif key == ord('o'):  # Modo solo objetos
+                    elif key == ord('o'):  #  solo objetos
                         self._cambiar_modo('objetos')
-                    elif key == ord('t'):  # Modo solo texto
+                    elif key == ord('t'):  #  solo texto
                         self._cambiar_modo('texto')
-                    elif key == ord('b'):  # Modo ambos
+                    elif key == ord('b'):  #  ambos
                         self._cambiar_modo('ambos')
-                    elif key == ord('a'):  # Análisis forzado
+                    elif key == ord('a'):  # analisis forzado
                         self._analisis_forzado(frame, modo_visual)
-                    elif key == ord('l'):  # Lectura continua
+                    elif key == ord('l'):  # lectura continua (EN PROCESO DE MEJORAR)
                         self._lectura_continua(frame)
-                    elif key == ord('v'):  # Ajustar volumen
+                    elif key == ord('v'):  # ajustar volumen (EN PROCESOS DE MEJORAR)
                         self._ajustar_volumen()
-                    elif key == ord('r'):  # Ajustar velocidad
+                    elif key == ord('r'):  # ajustar velocidad (EN PROCESO DE MEJORAR)
                         self._ajustar_velocidad()
                 else:
                     time.sleep(0.1)
@@ -135,34 +128,33 @@ class GafasIACompleto:
     
     def _mostrar_controles(self):
         print("\nControles disponibles:")
-        print("   'o' → Modo detección de objetos")
-        print("   't' → Modo lectura de texto (OCR)")
-        print("   'b' → Modo ambos (objetos + texto)")
-        print("   'a' → Análisis forzado inmediato")
-        print("   'l' → Lectura continua de documento")
-        print("   'v' → Ajustar volumen")
-        print("   'r' → Ajustar velocidad de habla")
-        print("   'q' → Salir del sistema")
+        print("'o' → Modo detección de objetos")
+        print("'t' → Modo lectura de texto (OCR)")
+        print("'b' → Modo ambos (objetos + texto)") # EN PROCESOS DE MEJORAR
+        print("'a' → Análisis forzado inmediato") # EN PROCESOS DE MEJORAR
+        print("'l' → Lectura continua de documento") # EN PROCESO DE MEJORAR
+        print("'v' → Ajustar volumen") # EN PROCESOS DE MEJORAR
+        print("'r' → Ajustar velocidad de habla") # EN PROCESOS DE MEJORAR
+        print("'q' → Salir del sistema")
         print(f"\nModo actual: {self.modo_actual.upper()}")
     
     def _cambiar_modo(self, nuevo_modo: str):
         modos_validos = ['objetos', 'texto', 'ambos']
         if nuevo_modo in modos_validos:
             self.modo_actual = nuevo_modo
-            print(f"Modo cambiado a: {nuevo_modo.upper()}")
-            
+            print(f"Modo cambiado a: {nuevo_modo.upper()}")  
+            # Anunciar cambio por voz
             if nuevo_modo == 'objetos':
-                self.sintetizador.decir("Modo detección de objetos activado", prioridad=True)
+                self.sintetizador.decir("Detección de objetos activado", prioridad=True)
             elif nuevo_modo == 'texto':
-                self.sintetizador.decir("Modo lectura de texto activado", prioridad=True)
+                self.sintetizador.decir("Lectura de texto activado", prioridad=True)
             else:
-                self.sintetizador.decir("Modo detección completa activado", prioridad=True)
+                self.sintetizador.decir("Detección completa activado", prioridad=True)
     
     def _analizar_objetos(self, frame):
         try:
             print("Analizando objetos...")
             detecciones = self.detector.detectar(frame, solo_prioritarios=True)
-            
             if detecciones:
                 self.sintetizador.decir_detecciones(detecciones, incluir_detalles=False)
                 print(f"{len(detecciones)} objetos detectados")
@@ -177,12 +169,12 @@ class GafasIACompleto:
         try:
             print("Analizando texto...")
             textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
-            
             if textos:
                 descripcion = self.lector_ocr.generar_descripcion_audio(textos, modo='resumen')
                 self.sintetizador.decir(descripcion)
-                print(f" {len(textos)} textos detectados")
-
+                print(f"{len(textos)} textos detectados")
+                
+                # Mostrar textos en consola para debugging
                 for i, texto in enumerate(textos[:3], 1):
                     print(f"  {i}. '{texto['texto']}' ({texto['confianza']}%) - {texto['categoria']}")
             
@@ -193,9 +185,7 @@ class GafasIACompleto:
             return []
     
     def _analisis_forzado(self, frame, modo_visual):
-        """Realiza un análisis forzado con información detallada"""
-        print("Análisis forzado iniciado...")
-        
+        print("Analisis forzado, activado") #informe 
         if self.modo_actual == 'objetos' or self.modo_actual == 'ambos':
             print("Analizando objetos (detallado)...")
             detecciones = self.detector.detectar(frame, solo_prioritarios=False)  # Todos los objetos
@@ -203,21 +193,19 @@ class GafasIACompleto:
                 self.sintetizador.decir_detecciones(detecciones, incluir_detalles=True)
                 if modo_visual:
                     frame_detecciones = self.detector.dibujar_detecciones(frame, detecciones)
-                    cv2.imshow('Gafas IA Completo', frame_detecciones)
+                    cv2.imshow('RaspVision Completo', frame_detecciones)
         
         if self.modo_actual == 'texto' or self.modo_actual == 'ambos':
-            print("Analizando texto (detallado)...")
+            print("Analizando texto (detallado)")
             textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
             if textos:
-                # En análisis forzado, dar más detalles
                 descripcion = self.lector_ocr.generar_descripcion_audio(textos, modo='completo')
                 self.sintetizador.decir(descripcion)
                 if modo_visual:
                     frame_texto = self.lector_ocr.dibujar_texto_detectado(frame, textos)
-                    cv2.imshow('Gafas IA Completo', frame_texto)
+                    cv2.imshow('RasVision Completo', frame_texto)
     
     def _lectura_continua(self, frame):
-        """Modo especial para leer documentos completos"""
         print("Iniciando lectura continua...")
         self.sintetizador.decir("Iniciando lectura de documento", prioridad=True)
         time.sleep(2)
@@ -225,7 +213,6 @@ class GafasIACompleto:
         try:
             # Detectar texto con máxima precisión
             textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
-            
             if not textos:
                 self.sintetizador.decir("No se detectó texto legible en el documento")
                 return
@@ -237,14 +224,10 @@ class GafasIACompleto:
             
             for i, fragmento in enumerate(fragmentos, 1):
                 print(f"Fragmento {i}/{len(fragmentos)}: {fragmento[:50]}...")
-                
                 # Leer fragmento
                 self.sintetizador.decir(f"Fragmento {i}. {fragmento}")
-                
                 # Esperar a que termine de leer este fragmento
                 self.sintetizador.esperar_finalizacion(timeout=30)
-                
-                # Pausa entre fragmentos
                 time.sleep(1)
             
             self.sintetizador.decir("Lectura de documento completada")
@@ -254,7 +237,6 @@ class GafasIACompleto:
             self.sintetizador.decir("Error durante la lectura del documento")
     
     def _ajustar_volumen(self):
-        """Permite ajustar el volumen del sistema"""
         print("Ajuste de volumen - Presiona:")
         print("1 → Bajo (50%), 2 → Normal (80%), 3 → Alto (100%)")
         
@@ -263,20 +245,17 @@ class GafasIACompleto:
         self.sintetizador.decir("Ajuste de volumen. Presiona 1 para bajo, 2 para normal, 3 para alto", prioridad=True)
     
     def _ajustar_velocidad(self):
-        """Permite ajustar la velocidad de habla"""
         print("Ajuste de velocidad - Presiona:")
         print("1 → Lenta (150), 2 → Normal (180), 3 → Rápida (220)")
         
         self.sintetizador.decir("Ajuste de velocidad. Presiona 1 para lenta, 2 para normal, 3 para rápida", prioridad=True)
     
     def _manejador_cierre(self, signal_num, frame):
-        """Manejador para cierre limpio del sistema"""
         print(f"\nSeñal {signal_num} recibida, cerrando sistema...")
         self.ejecutando = False
     
     def _limpiar_recursos(self):
-        """Limpia todos los recursos del sistema"""
-        print("🧹 Limpiando recursos...")
+        print("Limpiando recursos")
         
         if self.camara:
             self.camara.release()
@@ -295,24 +274,23 @@ class GafasIACompleto:
         print("Modo de prueba OCR activado")
         
         if ruta_imagen:
-            #  imagenes espcificas 
+            #  con imagen local
             imagen = cv2.imread(ruta_imagen)
             if imagen is None:
                 print(f"No se pudo cargar la imagen: {ruta_imagen}")
                 return
         else:
-            # Tomar foto con la cámara
+            #  foto con la cámara
             self.iniciar_camara()
             ret, imagen = self.camara.read()
             if not ret:
                 print("No se pudo capturar imagen")
                 return
-            
             print("Foto capturada para análisis OCR")
             if self.camara:
                 self.camara.release()
         
-        # Probar detección de texto
+        # prueba  detección de texto
         print("Probando detección de texto...")
         textos = self.lector_ocr.detectar_texto(imagen, mejorar_imagen=True)
         
@@ -321,15 +299,13 @@ class GafasIACompleto:
             for i, texto in enumerate(textos, 1):
                 print(f"  {i}. '{texto['texto']}' ({texto['confianza']}%) - {texto['posicion']}")
             
-            # Probar síntesis de voz
             descripcion = self.lector_ocr.generar_descripcion_audio(textos, modo='completo')
             print(f"Descripción de audio: '{descripcion}'")
             
             if self.sintetizador.disponible:
                 self.sintetizador.decir(descripcion)
-                time.sleep(len(descripcion) * 0.1)  #** PROPENSO A CAMBIAR
-            
-            # Mostrar imagen con detecciones
+                time.sleep(len(descripcion) * 0.1) 
+
             imagen_resultado = self.lector_ocr.dibujar_texto_detectado(imagen, textos)
             cv2.imshow('OCR - Texto Detectado', imagen_resultado)
             print("Presiona cualquier tecla para continuar...")
@@ -345,9 +321,9 @@ class GafasIACompleto:
 
 def main():
     print("=" * 60)
-    print("RasVision - SISTEMA COMPLETO")
-    print("Detección de Objetos + Reconocimiento de Texto (OCR)")
-    print("Desarrollado para personas con discapacidad visual") #** PROPENSO A CAMBIAR
+    print("RASVISION - SISTEMA COMPLETO")
+    print("   Detección de Objetos + Reconocimiento de Texto (OCR)")
+    print("   Desarrollado para personas con discapacidad visual")
     print("=" * 60)
     
     gafas = GafasIACompleto()
@@ -371,7 +347,7 @@ def main():
             ruta = input("Ingresa la ruta de la imagen: ").strip()
             gafas.modo_prueba_ocr(ruta_imagen=ruta)
         elif opcion == '4':
-            print("\nCapturando imagen para prueba OCR...")
+            print("\n Capturando imagen para prueba OCR...")
             gafas.modo_prueba_ocr()
         else:
             print("Opción no válida")
