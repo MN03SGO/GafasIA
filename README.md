@@ -7,23 +7,27 @@ La discapacidad visual limita la autonomía y participación social de millones 
 Propenso a cambios 28/09/2025
 
 ```javascript
-[Sep 28 00:14]  .
-├── [Sep 19 07:31]  ejemplo_detector.py
-├── [Sep 28 23:10]  ejemplo_ocr_integrado.py
-├── [Sep 19 07:31]  gafas_ia_integrado.py
-├── [Sep 24 13:50]  README.md
-├── [Sep 17 07:34]  src
-│   ├── [Sep 16 22:35]  audio
-│   │   ├── [Sep 22 15:45]  __pycache__
-│   │   └── [Sep 19 07:31]  sintetizador_voz.py
-│   ├── [Sep 16 02:10]  deteccion
-│   │   ├── [Sep 19 07:31]  detector_objetos.py
-│   │   └── [Sep 22 15:45]  __pycache__
-│   └── [Sep 22 21:41]  ocr
-│       ├── [Sep 22 21:30]  lector_texto.py
-│       └── [Sep 22 21:41]  __pycache__
-└── [Sep 16 02:07]  yolov8n.pt
+[Sep 29 23:18]  .
+├── [Sep 29 22:25]  ejemplo_detector.py
+├── [Sep 29 22:25]  ejemplo_ocr_integrado.py
+├── [Sep 29 22:25]  gafas_ia_integrado.py
+├── [Sep 29 23:18]  Librerias
+│   ├── [Sep 29 23:18]  libs.txt
+│   └── [Sep 29 22:59]  requirements.txt
+├── [Sep 29 22:25]  LICENSE
+├── [Sep 29 22:25]  README.md
+├── [Sep 29 22:25]  src
+│   ├── [Sep 29 23:14]  audio
+│   │   ├── [Sep 29 23:14]  __pycache__
+│   │   └── [Sep 29 22:25]  sintetizador_voz.py
+│   ├── [Sep 29 23:13]  deteccion
+│   │   ├── [Sep 29 22:25]  detector_objetos.py
+│   │   └── [Sep 29 23:13]  __pycache__
+│   └── [Sep 29 23:14]  ocr
+│       ├── [Sep 29 23:26]  lector_texto.py
+│       └── [Sep 29 23:26]  __pycache__
+└── [Sep 29 23:13]  yolov8n.pt
 
-8 directories, 8 files
+9 directories, 11 files
 ```
 ![15a4b14c-da9a-4dea-b511-cd47723c10b9](https://github.com/user-attachments/assets/149c5e11-3454-4af0-8de7-ebbb1bd4c242)
