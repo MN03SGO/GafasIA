@@ -1,0 +1,12 @@
+#**LIBRERIAS OCUPADAS
+opencv-python==4.8.1.78
+torch==2.0.1
+torchvision==0.15.2
+ultralytics==8.0.196
+pytesseract==0.3.10
+pyttsx3==2.90
+numpy==1.24.3
+Pillow==10.0.1
+matplotlib==3.7.2
+
+#^ARCHIVO CREADO EL 29/09/2025 PARA FACILIAR LAS DESCARGAS DE LIBERIASS

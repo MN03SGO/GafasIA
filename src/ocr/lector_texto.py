@@ -90,7 +90,7 @@ class LectorTexto:
             )
             # Operación de apertura para limpiar ruido pequeño
             kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-            imagen_final = cv2.morphologyEx(imagen_binaria, cv2.MORPH_OPENING, kernel)
+            imagen_final = cv2.morphologyEx(imagen_binaria, cv2.MORPH_OPEN, kernel)
             return imagen_final
         except Exception as e:
             print(f"Error en mejora de imagen: {e}")
