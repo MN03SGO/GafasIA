@@ -1,10 +1,13 @@
 import cv2
 import time
 import signal
+
+import threading
 import sys
 from src.deteccion.detector_objetos import DetectorObjetos
 from src.ocr.lector_texto import LectorTexto
 from src.audio.sintetizador_voz import SintetizadorVoz
+
 
 class GafasIACompleto:
     def __init__(self):
@@ -22,6 +25,11 @@ class GafasIACompleto:
             velocidad=180,
             volumen=0.8
         )
+        #Metodos agregados el 29/09/2025
+        self.hilo_voz=None
+        self.texto_para_decir = ""
+        #-----------------------------
+
         self.modo_actual = 'objetos'  # 'objetos', 'texto', 'ambos'
         self.intervalo_deteccion = 3
         self.ultimo_analisis = 0
@@ -31,6 +39,22 @@ class GafasIACompleto:
         signal.signal(signal.SIGTERM, self._manejador_cierre)
         
         print("Sistema RasVision completo")
+
+                    #NUEVO FUNCION AGREGADO EL 29/09/2025
+    def _ejecutar_voz(self):
+        if self.texto_para_decir:
+            self._decir_en_paralelo(self.texto_para_decir, prioridad=True) #  CAMBIADA
+            self.texto_para_decir = ""
+    def _decir_en_paralelo(self, texto:str):
+        if  self.hilo_voz and self.hilo_voz_alive():
+            print("La voz estga ocupada")
+            return
+        self.texto_para_decir = texto
+        self.hilo_voz = threading.Thread(target=self._ejecutar_voz, daemon=True)
+        self.hilo_voz.start
+
+
+
     
     def iniciar_camara(self):
         print("Abriendo camara")
@@ -57,7 +81,7 @@ class GafasIACompleto:
     def ejecutar(self, modo_visual: bool = False):
         try:
             self.iniciar_camara()
-            self.sintetizador.decir_inicio()
+            self.sintetizador.decir_en_paralelo()
             time.sleep(2)
             self.ejecutando = True
             self._mostrar_controles() 
@@ -125,6 +149,22 @@ class GafasIACompleto:
             self.sintetizador.decir_error()
         finally:
             self._limpiar_recursos()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     def _mostrar_controles(self):
         print("\nControles disponibles:")
@@ -145,11 +185,11 @@ class GafasIACompleto:
             print(f"Modo cambiado a: {nuevo_modo.upper()}")  
             # Anunciar cambio por voz
             if nuevo_modo == 'objetos':
-                self.sintetizador.decir("Detección de objetos activado", prioridad=True)
+                self._decir_en_paralelo("Detección de objetos activado", prioridad=True)
             elif nuevo_modo == 'texto':
-                self.sintetizador.decir("Lectura de texto activado", prioridad=True)
+                self._decir_en_paralelo("Lectura de texto activado", prioridad=True)
             else:
-                self.sintetizador.decir("Detección completa activado", prioridad=True)
+                self._decir_en_paralelo("Detección completa activado", prioridad=True)
     
     def _analizar_objetos(self, frame):
         try:
@@ -171,7 +211,7 @@ class GafasIACompleto:
             textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
             if textos:
                 descripcion = self.lector_ocr.generar_descripcion_audio(textos, modo='resumen')
-                self.sintetizador.decir(descripcion)
+                self._decir_en_paralelo(descripcion) # CAMBIADA
                 print(f"{len(textos)} textos detectados")
                 
                 # Mostrar textos en consola para debugging
@@ -200,55 +240,49 @@ class GafasIACompleto:
             textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
             if textos:
                 descripcion = self.lector_ocr.generar_descripcion_audio(textos, modo='completo')
-                self.sintetizador.decir(descripcion)
+                self._decir_en_paralelo(descripcion)
                 if modo_visual:
                     frame_texto = self.lector_ocr.dibujar_texto_detectado(frame, textos)
                     cv2.imshow('RasVision Completo', frame_texto)
     
     def _lectura_continua(self, frame):
         print("Iniciando lectura continua...")
-        self.sintetizador.decir("Iniciando lectura de documento", prioridad=True)
-        time.sleep(2)
-        
-        try:
-            # Detectar texto con máxima precisión
-            textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
-            if not textos:
-                self.sintetizador.decir("No se detectó texto legible en el documento")
-                return
-            
-            # Generar fragmentos para lectura continua
-            fragmentos = self.lector_ocr.leer_texto_continuo(frame, velocidad_lectura='normal')
-            
-            print(f"Leyendo {len(fragmentos)} fragmentos de texto...")
-            
-            for i, fragmento in enumerate(fragmentos, 1):
-                print(f"Fragmento {i}/{len(fragmentos)}: {fragmento[:50]}...")
-                # Leer fragmento
-                self.sintetizador.decir(f"Fragmento {i}. {fragmento}")
-                # Esperar a que termine de leer este fragmento
-                self.sintetizador.esperar_finalizacion(timeout=30)
-                time.sleep(1)
-            
-            self.sintetizador.decir("Lectura de documento completada")
-            
-        except Exception as e:
-            print(f"Error en lectura continua: {e}")
-            self.sintetizador.decir("Error durante la lectura del documento")
+        self._decir_en_paralelo("Iniciando lectura de documento")
     
+    # Esperamos a que termine el anuncio inicial
+        if self.hilo_voz and self.hilo_voz.is_alive():
+            self.hilo_voz.join(timeout=5) # Espera un máximo de 5 segundos
+
+    # ... (código para detectar texto y generar fragmentos)
+        fragmentos = self.lector_ocr.leer_texto_continuo(frame, velocidad_lectura='normal')
+    
+        for i, fragmento in enumerate(fragmentos, 1):
+            texto_a_leer = f"Fragmento {i}. {fragmento}"
+            print(f"Leyendo fragmento {i}/{len(fragmentos)}...")
+        
+        # Leemos el fragmento en paralelo
+            self._decir_en_paralelo(texto_a_leer)
+        
+        # ¡Y aquí esperamos a que termine ANTES de pasar al siguiente!
+            if self.hilo_voz and self.hilo_voz.is_alive():
+                self.hilo_voz.join(timeout=30) # Espera máx. 30s por fragmento
+        
+            time.sleep(0.5) # Pequeña pausa entre fragmentos
+            
+        self._decir_en_paralelo("Lectura de documento completada")
     def _ajustar_volumen(self):
         print("Ajuste de volumen - Presiona:")
         print("1 → Bajo (50%), 2 → Normal (80%), 3 → Alto (100%)")
         
         # En un sistema real con botones físicos, esto sería diferente
         # Aquí simulamos con input para demostración
-        self.sintetizador.decir("Ajuste de volumen. Presiona 1 para bajo, 2 para normal, 3 para alto", prioridad=True)
+        self._decir_en_paralelo("Ajuste de volumen. Presiona 1 para bajo, 2 para normal, 3 para alto", prioridad=True)
     
     def _ajustar_velocidad(self):
         print("Ajuste de velocidad - Presiona:")
         print("1 → Lenta (150), 2 → Normal (180), 3 → Rápida (220)")
         
-        self.sintetizador.decir("Ajuste de velocidad. Presiona 1 para lenta, 2 para normal, 3 para rápida", prioridad=True)
+        self._decir_en_paralelo("Ajuste de velocidad. Presiona 1 para lenta, 2 para normal, 3 para rápida", prioridad=True)
     
     def _manejador_cierre(self, signal_num, frame):
         print(f"\nSeñal {signal_num} recibida, cerrando sistema...")
@@ -264,7 +298,7 @@ class GafasIACompleto:
         cv2.destroyAllWindows()
         
         if self.sintetizador:
-            self.sintetizador.decir("Sistema desactivado", prioridad=True)
+            self._decir_en_paralelo("Sistema desactivado", prioridad=True)
             time.sleep(2)
             self.sintetizador.finalizar()
         
@@ -303,7 +337,7 @@ class GafasIACompleto:
             print(f"Descripción de audio: '{descripcion}'")
             
             if self.sintetizador.disponible:
-                self.sintetizador.decir(descripcion)
+                self._decir_en_paralelo(descripcion)
                 time.sleep(len(descripcion) * 0.1) 
 
             imagen_resultado = self.lector_ocr.dibujar_texto_detectado(imagen, textos)
@@ -314,7 +348,7 @@ class GafasIACompleto:
             
         else:
             print("No se detectó texto en la imagen")
-            self.sintetizador.decir("No se detectó texto legible en la imagen")
+            self._decir_en_paralelo("No se detectó texto legible en la imagen")
         
         print("Prueba OCR completada")
 
