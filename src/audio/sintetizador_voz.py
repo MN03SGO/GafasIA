@@ -60,72 +60,83 @@ class SintetizadorVoz:
         
         # procesamiento de audio
         self._iniciar_hilo_audio()
-    
+
+
+
+    # LINEA MODIFICADA jue 02 oct 2025
+    #MODIFICA EN LA PC
+
+    # =================================
     def _configurar_motor(self):
         if not self.motor:
             return
         
-        #  velocidad
-        self.motor.setProperty('rate', self.velocidad)
-        
-        #  volumen
-        self.motor.setProperty('volume', self.volumen)
-        
-        # voz en español
-        voces = self.motor.getProperty('voices')
-        voz_espanol = None
-        
+        try:
+            self.motor.setProperty('rate', self.velocidad)
+            self.motor.setProperty('volume', self.volumen)
+            voces = self.motor.getProperty('voices')
+            voz_espanol = self._encontrar_voz_espanol(voces)
+            if voz_espanol:
+                self.motor.setProperty('voice', voz_espanol)
+            else:
+                print("No se encontro voz")
+        except Exception as e:
+            print(f"error de configuracion del TTS en la LINEA 84 {e}")
+
+        # HASTA AQUI TERMINE EL NUEVO MANEJADOR 
+
+    def _encontra_voz_en_espanol(self, voces):
+        voces_espanol = []
         for voz in voces:
-            # Buscar voz en español
-            if 'spanish' in voz.name.lower() or 'es' in voz.id.lower():
-                voz_espanol = voz.id
-                break
-            elif any(pais in voz.id.lower() for pais in ['es_', 'mx_', 'ar_', 'co_']):
-                voz_espanol = voz.id
-                break
-        
-        if voz_espanol:
-            self.motor.setProperty('voice', voz_espanol)
-            print(f" Voz en español configurada: {voz_espanol}")
-        else:
-            print(" No se encontró voz en español, usando voz por defecto")
-            # Listar voces disponibles para debugging
-            print("Voces disponibles:")
-            for i, voz in enumerate(voces[:3]): 
-                print(f"  {i}: {voz.name} ({voz.id})")
+            voz_lower = voz.name.lower() + "" + voz.id.lower()
+            if any(lang in voz_lower for lang in ['spanish', 'español', 'es_', 'spain']):
+                voces_espanol.append(voz)
+        for voz in voces:
+            if 'female' in voz.name.lower() or 'mujer' in voz.name.lower():
+                return voz.id
     
+    
+
+
     def _iniciar_hilo_audio(self):
         
         if self.disponible:
             self.hilo_audio = threading.Thread(target=self._procesar_cola_audio, daemon=True)
             self.hilo_audio.start()
             print("Hilo de audio iniciado")
-    
+
+
+
+    # FUNCIOINES AGREGADAS EL 02 DE OCTUBRE 
     def _procesar_cola_audio(self):
     
         while True:
             try:
-        
-                mensaje = self.cola_mensajes.get()
-                
+                mensaje = self.cola_mensajes.get(timeout=1.0)
                 if mensaje is None:
                     break
-                
-                self.reproduciendo = True
-                print(f"Reproduciendo: '{mensaje}'")
-                
-                self.motor.say(mensaje)
-                self.motor.runAndWait()
-                
-                self.reproduciendo = False
-                
+                self._reproducir_mensaje(mensaje)   # LINEA  112 MODIFICADA POR TRUE
                 self.cola_mensajes.task_done()
-                
-                time.sleep(0.5)
+            except queue.Empty:
+                return
                 
             except Exception as e:
                 print(f"Error en procesamiento de audio: {e}")
                 self.reproduciendo = False
+
+    def _reproducir_mensaje(self, mensaje):
+        self.reproduciendo = True
+        try: 
+            print(f"Reproduciendo:'{mensaje}' ")
+            self.motor.say(mensaje)
+            self.motor.runAndWait()
+        except Exception as e:
+            print(f"Error al reproducir mensaje LINEA 129: {e}")
+        finally:
+            self.reproduciendo  = False
+
+
+
     
     def decir(self, mensaje: str, prioridad: bool = False):
     
@@ -141,7 +152,42 @@ class SintetizadorVoz:
         
         self.cola_mensajes.put(mensaje)
         print(f" Mensaje encolado: '{mensaje[:50]}...' (Cola: {self.cola_mensajes.qsize()})")
+
+    def _obtener_estado(self) -> Dict:
+        return {
+            'disponible': self.disponible, 
+            'reproduciendo': self.reproduciendo, 
+            'mensaje_en_cola': self.cola_mensajes.qsize(),
+            'velocidad': self.velocidad,
+            'volumen': self.volumen,
+            'idioma': self.idioma
+
+        }
+    def pausar (self):
+        if self.motor:
+            self.motor.stop()
+    def obtener_voces_disponibles(self) -> List[Dict]:
     
+        if not self.motor:
+            return []
+    
+        voces = []
+        for voz in self.motor.getProperty('voices'):
+            voces.append({
+                'id': voz.id,
+                'nombre': voz.name,
+                'idiomas': getattr(voz, 'languages', [])
+            })
+        return voces
+    
+    # TERMINA FUNCIIONES AGREGADAS DE PRUEBA PARA MEJOR MANEJO 
+
+
+
+
+
+
+
     def decir_detecciones(self, detecciones: List[Dict], incluir_detalles: bool = False):
     
         if not detecciones:
@@ -249,6 +295,7 @@ class SintetizadorVoz:
     
     def finalizar(self):
         print("Finalizando sistema de síntesis de voz...")
+        self.cola_mensajes.put(None)
         
         if self.hilo_audio and self.hilo_audio.is_alive(): # Señal de terminación
             self.hilo_audio.join(timeout=2)
