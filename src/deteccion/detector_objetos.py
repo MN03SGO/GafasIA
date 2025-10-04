@@ -33,7 +33,7 @@ class DetectorObjetos:
             50: 'brócoli', 51: 'zanahoria', 52: 'perro caliente', 53: 'pizza', 54: 'dona',
             55: 'pastel', 56: 'silla', 57: 'sofá', 58: 'planta en maceta', 59: 'cama',
             60: 'mesa de comedor', 61: 'inodoro', 62: 'televisor', 63: 'computadora portátil', 64: 'ratón de computadora',
-            65: 'control remoto', 66: 'teclado', 67: 'teléfono celular', 68: 'microondas', 69: 'horno',
+            65: 'control remoto', 66: 'teclado', 67: 'celular', 68: 'microondas', 69: 'horno',
             70: 'tostadora', 71: 'fregadero', 72: 'refrigerador', 73: 'libro', 74: 'reloj',
             75: 'florero', 76: 'tijeras', 77: 'osito de peluche', 78: 'secador de cabello', 79: 'cepillo de dientes'
         }
@@ -48,7 +48,7 @@ class DetectorObjetos:
             62: 'televisor',       # Entretenimiento
             39: 'botella',         # Hidratación
             41: 'taza',            # Bebidas calientes
-            67: 'teléfono celular', # Comunicación
+            67: 'celular', # ComunicaciónS
             73: 'libro',           # Lectura (aunque mejor OCR)
             0: 'persona'           # Personas cercanas
         }
@@ -73,7 +73,6 @@ class DetectorObjetos:
                         # Filtrar solo objetos prioritarios si se solicita
                         if solo_prioritarios and clase_id not in self.objetos_prioritarios:
                             continue
-                        
                         # Coordenadas de la caja delimitadora
                         x1, y1, x2, y2 = box.xyxy[0].tolist()
                         
