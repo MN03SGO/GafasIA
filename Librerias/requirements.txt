@@ -10,3 +10,6 @@ Pillow==10.0.1
 matplotlib==3.7.2
 
 #^ARCHIVO CREADO EL 29/09/2025 PARA FACILIAR LAS DESCARGAS DE LIBERIASS
+
+
+#cambiar librerias

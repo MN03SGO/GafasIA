@@ -35,7 +35,7 @@ class GafasIACompleto:
     def iniciar_camara(self):
         print("Inicializando cámara...")
         
-        for indice in [0, 1, 2]:
+        for indice in [2, 0, 1]:
             try:
                 self.camara = cv2.VideoCapture(indice)
                 if self.camara.isOpened():

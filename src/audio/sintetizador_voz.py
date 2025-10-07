@@ -1,4 +1,3 @@
-# src/audio/sintetizador_voz.py
 import pyttsx3
 import threading
 import queue
