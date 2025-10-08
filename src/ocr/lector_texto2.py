@@ -1,4 +1,5 @@
 import cv2
+from cv2.ocl import KernelArg_PTR_ONLY
 import pytesseract
 import numpy as np 
 import re 
@@ -95,23 +96,23 @@ class LectorTexto:
         
     def _mejorar_imagen_ocr(self, imagen: np.ndarray) -> np.ndarray:
         try :
-            if len (imagen.shape) == 3
-        
-                
+            if len (imagen.shape) == 3:
+                imagen_gris = cv2.cvtcolor(imagen, ccv2.COLOR_BGR2GRAY)
+            else: 
+                imagen_gris = imagen.copy()
+            if  min(alutra, ancho) < 300:
+                factor_escala - 800 / min(altura, ancho)
+                nuevo_ancho = int(ancho * factor_escala)
+                nueva_altura = int(altura * factor_escala)
+                imagen_gris  = cv2.resize(iamgen_gris, (nuevo_ancho, nueva_altura),
+                interpolation = cv2.INTER_CUBIC
 
-                    
+                ) 
+                print(f"Redimenciones de la imagen: {ancho}x{altura} -> {nuevo_ancho}x{nueva_altura}")
 
-               
+                imagen_denoised = cv2.fastNlMeansDenoising(imagen_gris, Non, h=10, templateWindowSize=7, searchWindowSize=21)
+                imagen_rotada = self._corregir_rotacion(imagen_denoised)
+                clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8.8))
+                imagen_mejora  = clahe.aply(imagen_rotada)
 
-
-
-
-
-           
-
-
-
-
-        
-
-        
+                kernel_sharpening = np.ndarray([-1, -1, -1], [-1, 9, -1], [-1, -1, -1])
