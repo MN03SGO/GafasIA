@@ -1,7 +1,6 @@
 import cv2
 import pytesseract
-import numoy as np
-import pyte 
+import numpy as np 
 import re 
 from PIL import Image, List, Dict, Tuple, Optional    
 from typing import List, DIct, Tuple
@@ -37,7 +36,7 @@ class LectorTexto:
         }
         print(" SISTEMA OCR INICIALIZADO CORRECTAMENTE")
 
-    def detectar_texto(self, imagen: np.ndarray, mejorar_imagen: bool = True, modo_psm: int = none) -> LIst(Dict):
+    def detectar_texto(self, imagen: np.ndarray, mejorar_imagen: bool = True, modo_psm: int = None) -> List[Dict]:
         if not self.disponible:
             print("Sistema OCR no disponible")
             return []
@@ -51,34 +50,58 @@ class LectorTexto:
                 4,
                 11,
                 12.
-                (OSD)
+                
             ]
             mejor_resultado = []
-            mejor_confianza_promedio = []
+            mejor_confianza_promedio = 0
 
             if modo_psm is not None:
                 modos_psm = [modos_psm]
             else:
                 modos_psm = modos_psm[:3]
             for psm in modos_psm:
-                config = f'--oem 3 --psm {psm} -l {self, idioma}'
+                config = f'--oem 3 --psm {psm} -l {self.idi}'
                 if len(imagen_procesada.shape) == 3:
                     imagen_pill = Image.fromarray(cv2.cvtColor(imagen_procesada, cv2.COLOR_BGR2RGB))
                 else:
                     imagen_pill = Image.fromarray(imagen_procesada)
-                datos_ocr = pytesseract.image_to_data(
-                    imagen_pill,
-                    config=config,
-                    output_type=pytesseract.Output.DICT
-                )
-                textos_detectados = self._procesar_resultados_ocr(datos_ocr, imagen.shape)
-                confianza_promedio = sum()
+                try:
+                    datos_ocr = pytesseract.image_to_data(
+                        imagen_pill,
+                        config=config,
+                        output_type=pytesseract.Output.DICT
+                    )
+                    textos_detectados = self._procesar
+                    textos_detectados = self._procesar_resultados_ocr(datos_ocr, imagen.shape)
+                    if textos_detectados: 
+                        confianza_promedio = sum(t['confianza'] for t in textos_detectados) / len(textos_detectados)
+                        print(f"  PSM {psm}: {len(textos_detectados)} textos, confianza {confianza_promedio:.1f}%")
+                        if confianza_promedio > mejor_confianza_promedio or len(textos_detectados) > len(mejor_resultado):
+                            mejor_resultado = textos_detectados
+                            mejor_confianza_promedio = confianza_promedio
+                            print(f"Resultado actualizado con PSM {psm}")
+                except Exception as e:
+                    print(f"Error del PSM{psm}: {e}")
+                    continue
 
-                print(f"  PSM {psm}: {len(textos_detectados)} textos, confianza {confianza_promedio:.1f}%")
+            tiempo_total = time.time() - inicio_tiempo
+            print(f"OCR completo en {tiempo_total:.2f}s - {len(mejor_resultado)} textos detectados")
+            print(f"Confianza promedio: {mejor_confianza_promedio:.1f}%")
+            return mejor_resultado
+        
+        except Exception as e: 
+            print(f"Erro en deteccio ocr: {e}")
+            return []
+        
+    def _mejorar_imagen_ocr(self, imagen: np.ndarray) -> np.ndarray:
+        try :
+            if len (imagen.shape) == 3
+        
+                
 
-                if confianza_promedio > mejor_confianza_promedio or len (textos_detectados) > len(mejorar_resultado):
-                    mejorar_resultado = textos_detectados
-                    mejorar_confianza_promedio =  confianza_promedio
+                    
+
+               
 
 
 
