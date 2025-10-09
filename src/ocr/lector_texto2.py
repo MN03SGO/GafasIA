@@ -211,6 +211,30 @@ class LectorTexto:
             if patron_ruido  in texto:
                 return True
 
+        for patron in self.palabras_ruido['caracteres_sueltos']:
+            if re.match(patron, texto):
+                return True
+        for patron in self.palabras_ruido['fragmentos']:
+            if re.match(patron, texto):
+                return True
+
+            simbolos = sum(1 for c in texto if not c.isalnum() and c != '')
+            if simbolos > len(texto) * 0.7: 
+                return  True
+    
+    def _cateforizar_texto(self, texto: str) -> str: 
+        texto_lower = texto.lower()
+        for categoria, patron in self.patrones_utiles.items():
+            if patron.serach(texto): 
+                return categoria
+            
+        if len(texto) > 50: 
+            return  'texto_largo'
+        elif any(palabra in texto_lower for palabra in ['calle', 'avenida'])
+
+        
+            
+
 
 
            

@@ -50,7 +50,7 @@ class DetectorObjetos:
             41: 'taza',            # Bebidas calientes
             67: 'celular', # ComunicaciónS
             73: 'libro',           # Lectura (aunque mejor OCR)
-            0: 'persona'           # Personas cercanas
+            0: 'Culero'           # Personas cercanas
         }
         
         print("Detector inicializado correctamente")
