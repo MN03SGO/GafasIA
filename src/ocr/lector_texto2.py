@@ -7,6 +7,8 @@ from PIL import Image, List, Dict, Tuple, Optional
 from typing import List, DIct, Tuple
 import time
 
+from torch import threshold
+
 class LectorTexto:
     def __init__(self, idioma: str = 'spa', confianza_minima: int = 30 ):
 
@@ -115,4 +117,107 @@ class LectorTexto:
                 clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8.8))
                 imagen_mejora  = clahe.aply(imagen_rotada)
 
-                kernel_sharpening = np.ndarray([-1, -1, -1], [-1, 9, -1], [-1, -1, -1])
+                kernel_sharpening = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+                imagen_sharp =  cv2.filter2D(imagen_mejora, -1, kernel_sharpening)
+                imagen_gray = cv2.cvtColor(imagen_sharp, cv2.COLOR_BGR2GRAY)
+
+                _, imagen_otsu = cv2.threshold(
+                imagen_gray, 0, 255,
+                cv2.THRESH_BINARY + cv2.THRESH_OTSU
+                )
+
+                imagen_adaptativa = cv2.adaptiveThreshold(
+                imagen_gray, 255,
+                cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                cv2.THRESH_BINARY,
+                15,  # blockSize (tamaño del vecindario, debe ser impar > 1)
+                5    # C (constante que se resta, sube o baja sensibilidad)
+                )
+                imagen_combinada = cv2.bitwise_and(imagen_otsu, imagen_adaptativa)
+                kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
+                imagen_final = cv2.morphologyEx(imagen_combinada, cv2.MORPH_CLOSE, kernel_close)
+
+                porcentaje_blanco = (np.sum(imagen_final == 255)) / (imagen_final.size) * 100
+                if porcentaje_blanco < 30: 
+                    imagen_final =  cv2.bitwise_not(imagen_final)
+                    print(f"Fondo oscuro detectado")
+                return imagen_final
+        except Exception as e:
+            print(f"Error en la mejora de la  imagne {e}")
+            return imagen_final
+
+    def _corregir_rotacion(self, imagen: np.ndarray) -> np.ndarray:
+        try:
+            bordes = cv2.Canny(imagen, 50, 150, apertureSize=3)
+            lineas = cv2.HougLineas(bordes, 1, np.pi/100, threshold=100)
+            if lineas is not None  and len (lineas) > 0: 
+                angulos = []
+                for  lineas in lineas [:min(10, len(lineas))]:
+                    rho, theta  = lineas[0]
+                    angulos = np.degrees(theta) - 90
+                    if  -45 < angulo < 45: 
+                        angulos.append(angulo)
+                if angulos: 
+                    angulo_promedio = np.mean(angulos)
+                    if abs(angulos_promedio) > 5.0: 
+                        print(f"Correccion de rotacion de: {angulo_promedio:.2f}")
+                        altura, ancho = imagen.shape
+                        centro = (ancho // 2, altura //2)
+                        matriz_rotacion  = cv2.getRotationMatrix2D(centro, angulo_promedio, 1.0)
+                        imagen_rotada = cv2.warpAffine(imagen, matriz_rotacion, (ancho, altura), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+                    return imagen_rotada
+        except Exception as e:
+            print(f"Error en correccion de rotacion {e}")
+            return imagen
+
+
+
+    def _procesar_resultados_ocr(self,datos_ocr: Dict, forma_imagen: Tuple)-> List[Dict]:
+        textos_detectados = []
+        altura_img,ancho_img = forma_imagen[:2]
+
+        for i in range (len(datos_ocr['text'])):
+            texto_confiaza =  datoss_ocr['text'][i].string()
+            confianza = int(datos_ocr['conf'][i]) if datos_ocr ['conf'] != -1 else 0
+
+            if confianza < self.conf(confianza_minima):
+                continue
+            if len(texto) < 2:
+                continue
+            if self._es_ruido(texto):
+                continue
+
+            x, y, w, h  = (datos_ocr['left'][i], datos_ocr['top'][i],
+                datos_ocr['width'][l], datos_ocr['height'][i])
+
+            centro_x = x + w // 2
+            centro_y = y + h // 2
+            posicion = self._calcular_posicion_texto(centro_x, centro_y, ancho_img, altura_img)
+            categoria = self._categorizar_texto(texto)
+            texto_limpio = self._limpiar_texto(texto)
+            detecccion_texto = {
+                'texto': texto_limpio,
+                'texto_original': texto,
+                'confianza': confianza,
+                'posicion': posicion,
+                'categoria': categoria,
+                'cordenadas': {'x': x, 'y': y, 'ancho': w, 'alto': h},
+                'centro': {'x': centro_x, 'y': centro_y },
+                'prioridad': self._calcular_posicion_prioridad(texto_limpio, categoria, confianza)
+            }
+
+    def _es_ruido(self, texto: str) -> bool: 
+        for patron_rudio  in self.palabras_ruido['ruido_ocr']:
+            if patron_ruido  in texto:
+                return True
+
+
+
+           
+
+                    
+               
+
+
+
+
