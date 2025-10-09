@@ -230,12 +230,37 @@ class LectorTexto:
             
         if len(texto) > 50: 
             return  'texto_largo'
-        elif any(palabra in texto_lower for palabra in ['calle', 'avenida'])
+        elif any(palabra in texto_lower for palabra in ['calle', 'avenida', 'boulevard']):
+            return 'direccion'
 
+        elif any(palabra in texto_lowe for palabra in ['tienda', 'restaurante', 'farmacia']):
+            return 'establecimiento'
+        elif texto.issuper() and len(texto) > 3:
+            return 'titulo_importante'
+        else: 
+            return 'texto_general'
+    
+    def _calcular_prioridad(self, teto: str, categoria: str, confianza: int) -> int:
+        prioridad = confianza 
+        bonificacion ={
+            'palabras_importantes': 50,
+            'direcciones': 40,
+            'precios': 35,
+            'horarios': 30,
+            'numero_telefono': 28,
+            'titulo_importante': 20,
+            'establecimiento': 15,
+            'direccion': 15
+        }
+        prioridad += bonificacion.get(categoria, 0)
+        if 5 <= len(texto) <= 30:
+            prioridad += 10
+        if ln(texto)> 100:
+            prioridad -= 20
+        return prioridad
+
+    def _limpiar_texto(self, texto: str) -> str: 
         
-            
-
-
 
            
 
