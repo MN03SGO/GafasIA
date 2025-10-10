@@ -55,3 +55,4 @@ typing_extensions==4.15.0
 tzdata==2025.2
 ultralytics==8.0.196
 urllib3==2.5.0
+piper-tts
