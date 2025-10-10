@@ -1,4 +1,4 @@
-# ejemplo_ocr_integrado.py - Sistema completo con detección de objetos y OCR
+
 import cv2
 import time
 import signal
@@ -35,7 +35,7 @@ class GafasIACompleto:
     def iniciar_camara(self):
         print("Inicializando cámara...")
         
-        for indice in [2, 0, 1]:
+        for indice in [0, 1, 2]:
             try:
                 self.camara = cv2.VideoCapture(indice)
                 if self.camara.isOpened():
@@ -322,7 +322,7 @@ def main():
         print("Prueba OCR con imagen")
         print("Prueba OCR con cámara")
         
-        opcion = input("\n ").strip()
+        opcion = input("\n ").strip() #CAMBIAFO
         
         if opcion == '1':
             print("\nIniciando en modo visual completo...")
