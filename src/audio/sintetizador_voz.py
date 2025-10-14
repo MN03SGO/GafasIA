@@ -42,9 +42,9 @@ class SintetizadorVoz:
                 "Detecto varios objetos"
             ],
             'persona_cerca': [
-                "Hay un culero cerca",
+                "Hay un persona cerca",
                 "Alguien se encuentra en el área",
-                "Detecto a una culero"
+                "Detecto a una persona"
             ],
             'error': [
                 "Error en el análisis",

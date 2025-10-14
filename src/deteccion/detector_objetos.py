@@ -50,7 +50,16 @@ class DetectorObjetos:
             41: 'taza',            # Bebidas calientes
             67: 'celular', # ComunicaciónS
             73: 'libro',           # Lectura (aunque mejor OCR)
-            0: 'Persona'           # Personas cercanas
+            0: 'Persona',        # Personas cercanas
+            2: 'automóvil',
+            3: 'motocicleta',
+            5: 'autobús',
+            63: 'computadora',
+            65: 'control remoto',
+            58: 'planta en maceta',
+            60: 'mesa de comedor'
+
+
         }
         
         print("Detector inicializado correctamente")
@@ -59,7 +68,7 @@ class DetectorObjetos:
     
         try:
             resultados = self.modelo(imagen, conf=self.confianza_minima, verbose=False)
-            
+
             detecciones = []
             
             for resultado in resultados:
