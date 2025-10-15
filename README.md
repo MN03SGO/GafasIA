@@ -8,7 +8,7 @@ El enfoque es casero y adaptable, pensado para que cualquier persona con conocim
 Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión digital, la empatía social y el diseño centrado en el usuario, poniendo en primer plano las necesidades reales de quienes enfrentan barreras visuales en su día a día.
 
 ## Estructura
-Propenso a cambios 07/10/2025
+Propenso a cambios 14/10/2025
 
 ```javascript
 [Oct 14 15:41]  .
