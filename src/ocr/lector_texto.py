@@ -13,7 +13,7 @@ class LectorTexto:
         
         self.idioma = idioma
         self.confianza_minima = confianza_minima
-        self.config_tesseract = f'--oem 3 --psm 6 -l {idioma}'
+        self.config_tesseract = f'--oem 3  -l {idioma}'
         try:
             version = pytesseract.get_tesseract_version()
             print(f"Tesseract {version} detectado")
@@ -31,37 +31,35 @@ class LectorTexto:
             'precios': re.compile(r'\$\s*\d+[.,]?\d*|\b\d+[.,]?\d*\s*(pesos?|euros?|dólares?)\b', re.IGNORECASE),
             'palabras_importantes': re.compile(r'\b(abierto|cerrado|entrada|salida|baño|emergencia|peligro|cuidado)\b', re.IGNORECASE)
         }
-        self.palabras_ruido = {
-            'ruido_ocr': ['|||', '___', '...', '---', '==='],
-            'caracteres_sueltos': [r'^\w$', r'^\d$'],  # Una sola letra o número
-            'fragmentos': [r'^.{1,2}$']  # Texto muy corto (1-2 caracteres)
-        }
+        self.palabras_ruido = { 'caracteres_sueltos': re.compile(r'^[a-zA-Z0-9]$') }
         
         print("Sistema OCR de RasVision iniciado...")
-    def detectar_texto(self, imagen: np.ndarray, mejorar_imagen: bool = True) -> List[Dict]:
+
+    def detectar_texto(self, imagen: np.ndarray, mejorar_imagen: bool = True, psm: int = 6) -> List[Dict]:
         if not self.disponible:
             print("Sistema OCR no disponible")
             return []
         
         try:
-            print("Iniciando detección de texto...")
-            inicio_tiempo = time.time()
             imagen_procesada = self._mejorar_imagen_ocr(imagen) if mejorar_imagen else imagen
-            if len(imagen_procesada.shape) == 3:
-                imagen_pil = Image.fromarray(cv2.cvtColor(imagen_procesada, cv2.COLOR_BGR2RGB))
-            else:
-                imagen_pil = Image.fromarray(imagen_procesada)
+            
+            # <-- MODIFICADO: Se puede especificar el Page Segmentation Mode (PSM)
+            config_actual = f'--psm {psm} {self.config_tesseract_base}'
+            
             datos_ocr = pytesseract.image_to_data(
-                imagen_pil, 
-                config=self.config_tesseract,
+                imagen_procesada,
+                config=config_actual,
                 output_type=pytesseract.Output.DICT
             )
-            textos_detectados = self._procesar_resultados_ocr(datos_ocr, imagen.shape)
-            tiempo_total = time.time() - inicio_tiempo
-            print(f"OCR completado en {tiempo_total:.2f}s - {len(textos_detectados)} textos detectados")
-            return textos_detectados
+            
+            textos_individuales = self._procesar_resultados_ocr(datos_ocr, imagen.shape)
+            
+            # <-- NUEVO: Agrupamos las palabras individuales en líneas coherentes
+            textos_agrupados = self._agrupar_texto_cercano(textos_individuales)
+            
+            return textos_agrupados
         except Exception as e:
-            print(f"Error en detección OCR: {e}")
+            print(f"Error crítico en detección OCR: {e}")
             return []
     
     def _mejorar_imagen_ocr(self, imagen: np.ndarray) -> np.ndarray:

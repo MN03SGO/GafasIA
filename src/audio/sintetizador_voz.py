@@ -2,6 +2,7 @@ import pyttsx3
 import threading
 import queue
 import time
+import random
 from typing import Optional, Dict, List
 import os
 
@@ -65,7 +66,6 @@ class SintetizadorVoz:
         voz_espanol = None
         
         for voz in voces:
-            # Buscar voz en español
             if 'spanish' in voz.name.lower() or 'mx' in voz.id.lower():
                 voz_espanol = voz.id
                 break
@@ -92,22 +92,15 @@ class SintetizadorVoz:
         while True:
             try:
                 mensaje = self.cola_mensajes.get()
-                
-                if mensaje is None:
-                    break
+                if mensaje is None: break
                 
                 self.reproduciendo = True
                 print(f"Reproduciendo: '{mensaje}'")
-                
-                # Sintetizar y reproducir
                 self.motor.say(mensaje)
                 self.motor.runAndWait()
                 self.reproduciendo = False
                 self.cola_mensajes.task_done()
-                
-                # Pequeña pausa entre mensajes
                 time.sleep(0.5)
-                
             except Exception as e:
                 print(f"Error en procesamiento de audio: {e}")
                 self.reproduciendo = False
@@ -129,23 +122,20 @@ class SintetizadorVoz:
     def decir_detecciones(self, detecciones: List[Dict], incluir_detalles: bool = False):
         if not detecciones:
             mensaje = self._obtener_frase_aleatoria('sin_objetos')
-            self.decir(mensaje)
+            self.decir(mensaje, prioridad=True)
             return
         
         # Un solo objeto
         if len(detecciones) == 1:
             det = detecciones[0]
-            if incluir_detalles:
-                mensaje = f"Veo {det['nombre']} {det['posicion']}, {det['distancia_relativa']}"
-            else:
-                mensaje = f"Hay {det['nombre']} cerca"
-            
-            # para personas
-            if det['clase_id'] == 0:  # persona
+            if det['clase_id'] == 0:
                 mensaje = self._obtener_frase_aleatoria('persona_cerca')
                 if incluir_detalles:
                     mensaje += f", {det['posicion']}"
-        
+            else:
+                mensaje = f"Veo {det['nombre']} {det['posicion']}, {det['distancia_relativa']}"
+            self.decir(mensaje, prioridad=True)
+            return
         # Múltiples objetos
         else:
             # Separar personas de objetos
@@ -157,9 +147,7 @@ class SintetizadorVoz:
             # Mencionar personas primero
             if personas:
                 if len(personas) == 1:
-                    partes_mensaje.append("Hay una persona cerca")
-                else:
-                    partes_mensaje.append(f"Hay {len(personas)} personas cerca")
+                    partes_mensaje.append("Hay una persona cerca") if len(personas) == 1 else f"Hay{len(personas)} personas cerca"
             
             # Mencionar objetos
             if objetos:
@@ -168,7 +156,7 @@ class SintetizadorVoz:
                 elif len(objetos) == 2:
                     partes_mensaje.append(f"y veo {objetos[0]['nombre']} y {objetos[1]['nombre']}")
                 else:
-                    partes_mensaje.append(f"y veo {objetos[0]['nombre']}, {objetos[1]['nombre']} y {len(objetos)-2} objetos más")
+                    partes_mensaje.append(f"y veo {objetos[0]['nombre']}, {objetos[1]['nombre']} y otros objetos")
             
             mensaje = " ".join(partes_mensaje) if partes_mensaje else self._obtener_frase_aleatoria('multiples_objetos')
         
@@ -183,7 +171,6 @@ class SintetizadorVoz:
         self.decir(mensaje, prioridad=True)
     
     def _obtener_frase_aleatoria(self, categoria: str) -> str:
-        import random
         frases = self.frases_contexto.get(categoria, ["Mensaje no disponible"])
         return random.choice(frases)
     
@@ -197,7 +184,6 @@ class SintetizadorVoz:
         print("Cola de audio limpiada")
     
     def esta_hablando(self) -> bool:
-
         return self.reproduciendo
     
     def esperar_finalizacion(self, timeout: float = 10.0):
