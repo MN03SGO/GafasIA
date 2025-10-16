@@ -4,6 +4,8 @@ import numpy as np
 from ultralytics import YOLO
 import torch
 from typing import List, Dict, Tuple
+from ultralytics import YOLO
+from ultralytics.nn.tasks import DetectionModel  #
 import time
 
 class DetectorObjetos:
@@ -14,8 +16,10 @@ class DetectorObjetos:
         # Configuración CPU  Raspberry Pi
         self.dispositivo = 'cpu'  # Cambiar a cuda en Pc Deb13 principal 
         
+        
         # Cargar modelo YOLO
-        self.modelo = YOLO(modelo_path)
+        with torch.serialization.safe_globals([DetectionModel]):
+            self.modelo = YOLO(modelo_path)
         self.confianza_minima = confianza_minima
         
         # diccionario de sacado de coco de etiquetas en español (COCO dataset)

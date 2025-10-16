@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 from src.deteccion.detector_objetos import DetectorObjetos
 import time
+import torch
+from ultralytics import YOLO
+from ultralytics.nn.tasks import DetectionModel
 
 def main():
 

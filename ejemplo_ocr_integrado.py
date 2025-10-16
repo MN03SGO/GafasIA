@@ -2,16 +2,22 @@
 import cv2
 import time
 import signal
+import torch
 import sys
+from ultralytics.nn.tasks import DetectionModel
 from src.deteccion.detector_objetos import DetectorObjetos
 from src.ocr.lector_texto import LectorTexto
 from src.audio.sintetizador_voz import SintetizadorVoz
+from ultralytics import YOLO
+
 
 class GafasIACompleto:
     def __init__(self):
+        
         self.detector = DetectorObjetos(
             modelo_path='yolov8n.pt',
             confianza_minima=0.5
+                
         )
         self.lector_ocr = LectorTexto(
             idioma='spa',
@@ -30,12 +36,14 @@ class GafasIACompleto:
         signal.signal(signal.SIGINT, self._manejador_cierre)
         signal.signal(signal.SIGTERM, self._manejador_cierre)
         
+
+        
         print("Rasvision inciado")
     
     def iniciar_camara(self):
         print("Inicializando cámara...")
         
-        for indice in [0, 1, 2]:
+        for indice in [ 0, 1, 2]:
             try:
                 self.camara = cv2.VideoCapture(indice)
                 if self.camara.isOpened():

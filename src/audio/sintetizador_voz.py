@@ -42,7 +42,7 @@ class SintetizadorVoz:
                 "Detecto varios objetos"
             ],
             'persona_cerca': [
-                "Hay un persona cerca",
+                "Hay una persona cerca",
                 "Alguien se encuentra en el área",
                 "Detecto a una persona"
             ],
