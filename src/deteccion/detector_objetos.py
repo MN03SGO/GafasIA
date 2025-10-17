@@ -21,7 +21,7 @@ class DetectorObjetos:
         with torch.serialization.safe_globals([DetectionModel]):
             self.modelo = YOLO(modelo_path)
         self.confianza_minima = confianza_minima
-        
+        # LIPE TRABAJAR EN ESTA PARTE
         # diccionario de sacado de coco de etiquetas en español (COCO dataset)
         self.etiquetas_es = {
             0: 'persona', 1: 'bicicleta', 2: 'automóvil', 3: 'motocicleta', 4: 'avión',
@@ -42,7 +42,7 @@ class DetectorObjetos:
             75: 'florero', 76: 'tijeras', 77: 'osito de peluche', 78: 'secador de cabello', 79: 'cepillo de dientes'
         }
         
-        # Objetos prioritarios para casa (más útiles para personas con discapacidad visual)
+        # LIPE TRABAJAR EN ESTA PARTE
         self.objetos_prioritarios = {
             56: 'silla',           # Importante para sentarse
             57: 'sofá',            # Mueble principal
@@ -60,9 +60,8 @@ class DetectorObjetos:
             5: 'autobús',
             63: 'computadora',
             65: 'control remoto',
-            58: 'planta en maceta',
-            60: 'mesa de comedor'
-
+            58: 'planta en maceta', 
+            24: 'mochila'
 
         }
         
