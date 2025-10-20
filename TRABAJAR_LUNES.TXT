@@ -1,0 +1,18 @@
+Trabajar en los nuevos set de
+etiquetas para el analizador de escena
+        #TRABAJAR AQUI, los nuevos set
+        nuevas_etiquetas = {
+            80: 'escaleras',
+            81: 'puerta', 
+            82: 'extintor',
+            83: 'señal_piso_mojado',
+            84: 'pared', 
+
+        }
+set encontrado en robotoflow https://app.roboflow.com/proyecto-rkmc5/stairs-3at2t-ckvzn/generate/augmentation
+ademas del set de las monedas
+recordar comprar componentes en casa rivas
+recordar actualizar dependecias, 
+ya que al hacer pull en la laptop te dio error
+└[~/Documentos/GafasIA]> date
+lun 20 oct 2025 01:21:08 CST

@@ -8,7 +8,9 @@ from typing import List, Dict, Tuple, Optional
 import time
 
 class LectorTexto:
-    #Cambiado el 17/10/2025
+    #└[~/Documentos/GafasIA]> date
+    #vie 17 oct 2025 02:10:50 CST
+
     _UMBRAL_Y_AGRUPACION = 10 
     _FACTOR_X_AGRUPACION = 1.5
     _BONIFICACIONES_PRIORIDAD = {
