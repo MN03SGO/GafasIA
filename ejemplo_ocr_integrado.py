@@ -11,7 +11,8 @@ class GafasIACompleto:
     def __init__(self):
         print("--- Inicializando Componentes de RasVision ---")
         self.analizador = AnalizadorEscena(
-            modelo_det_path='yolov8n.pt',
+            modelo_custom_path='models/detecciones/escaleras.pt',
+            #modelo_det_path='yolov8n.pt',
             modelo_seg_path='yolov8n-seg.pt',
             confianza_minima=0.5
         )
@@ -102,10 +103,6 @@ class GafasIACompleto:
             self._limpiar_recursos()
 
     def _analisis_periodico(self, frame: np.ndarray) -> dict:
-        """
-        Realiza el análisis según el modo actual y lo anuncia por voz.
-        Devuelve un diccionario con los resultados para poder dibujarlos.
-        """
         resultados = {}
         if self.modo_actual in ['objetos', 'ambos']:
             print("Analizando escena (objetos y contexto)...")
