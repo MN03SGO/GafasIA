@@ -8,38 +8,40 @@ El enfoque es casero y adaptable, pensado para que cualquier persona con conocim
 Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión digital, la empatía social y el diseño centrado en el usuario, poniendo en primer plano las necesidades reales de quienes enfrentan barreras visuales en su día a día.
 
 ## Estructura
-Propenso a cambios 17/10/2025
+Propenso a cambios 23/10/2025
 
 ```javascript
-[Oct 17 02:19]  .
-├── [Oct 10 22:00]  camaras.py
-├── [Oct 17 02:14]  ejemplo_ocr_integrado.py
-├── [Oct  4 01:11]  gafas_ia_integrado.py
-├── [Oct 17 02:19]  libs
-│   ├── [Oct 16 22:20]  requirements_laptop.txt
-│   └── [Oct  7 19:30]  requirements.txt
-├── [Sep 29 22:25]  LICENSE
-├── [Oct 16 23:52]  models
-│   ├── [Oct 16 23:55]  deteccion
-│   │   └── [Sep 29 23:13]  yolov8n.pt
-│   └── [Oct  3 18:45]  tts
-│       ├── [Oct  2 23:04]  es_ES-davefx-medium.onnx
-│       └── [Oct  2 23:04]  es_ES-davefx-medium.onnx.json
-├── [Oct 15 09:54]  README.md
-├── [Oct 16 00:35]  src
-│   ├── [Oct 17 02:08]  audio
-│   │   ├── [Oct 17 02:08]  __pycache__
-│   │   └── [Oct 17 02:16]  sintetizador_voz.py
-│   ├── [Oct 17 02:08]  deteccion
-│   │   ├── [Oct 17 01:41]  detector_objetos.py
-│   │   └── [Oct 17 02:08]  __pycache__
-│   ├── [Oct 16 00:57]  logica
-│   └── [Oct 17 02:08]  ocr
-│       ├── [Oct 17 02:10]  lector_texto.py
-│       └── [Oct 17 02:08]  __pycache__
-└── [Oct  3 23:41]  temp_audio.wav
+[Oct 23 08:30]  .
+├── [Oct 10 09:47]  camaras.py
+├── [Oct 23 07:11]  docs
+│   └── [Oct 23 07:11]  TRABAJAR_LUNES.TXT
+├── [Oct 23 08:30]  ejemplo_ocr_integrado.py
+├── [Oct 17 13:55]  libs
+│   ├── [Oct 17 13:55]  requirements_laptop.txt
+│   └── [Oct 17 13:55]  requirements.txt
+├── [Sep 30 09:37]  LICENSE
+├── [Oct 22 11:23]  models
+│   ├── [Oct 21 07:14]  deteccion
+│   │   └── [Oct 20 07:12]  escaleras.pt
+│   ├── [Oct 22 11:16]  rasvision_final_v2.pt
+│   └── [Oct  4 01:41]  tts
+│       └── [Oct  9 07:56]  es_ES-davefx-medium.onnx.json
+├── [Oct 23 07:11]  rasvision_final_v2.pt
+├── [Oct 17 13:55]  README.md
+├── [Oct 20 07:06]  src
+│   ├── [Oct 23 07:53]  audio
+│   │   ├── [Oct 23 07:53]  __pycache__
+│   │   └── [Oct 20 07:16]  sintetizador_voz.py
+│   ├── [Oct 23 08:33]  deteccion
+│   │   ├── [Oct 23 08:33]  analizador_escena.py
+│   │   └── [Oct 23 07:53]  __pycache__
+│   └── [Oct 23 07:53]  ocr
+│       ├── [Oct 20 07:09]  lector_texto.py
+│       └── [Oct 23 07:53]  __pycache__
+├── [Oct 18 13:59]  yolov8n.pt
+└── [Oct 20 02:07]  yolov8n-seg.pt
 
-13 directories, 14 files
+13 directories, 16 files
 
 
 ```
