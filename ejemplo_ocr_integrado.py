@@ -3,18 +3,20 @@ import time
 import signal
 import torch
 import numpy as np
-from src.deteccion.analizador_escena import AnalizadorEscena
+import sys
+import traceback
+from ultralytics import YOLO
 from src.ocr.lector_texto import LectorTexto
 from src.audio.sintetizador_voz import SintetizadorVoz
+from src.deteccion.analizador_escena import AnalizadorEscena
 
 class GafasIACompleto:
     def __init__(self):
         print("--- Inicializando Componentes de RasVision ---")
         self.analizador = AnalizadorEscena(
-            modelo_custom_path='models/detecciones/escaleras.pt',
-            #modelo_det_path='yolov8n.pt',
+            modelo_custom_path='models/detecciones/rasvision_final_v2.pt', # Cargando v2
             modelo_seg_path='yolov8n-seg.pt',
-            confianza_minima=0.5
+            confianza_minima=0.3
         )
         self.lector_ocr = LectorTexto(
             idioma='es',
@@ -31,172 +33,197 @@ class GafasIACompleto:
         self.ultimo_analisis = 0
         self.camara = None
         self.ejecutando = False
-        
+
         signal.signal(signal.SIGINT, self._manejador_cierre)
         signal.signal(signal.SIGTERM, self._manejador_cierre)
-        print("--- Sistema Listo ---")
-    
+
     def iniciar_camara(self):
-        print("Iniciando cámara...")
-        for indice in [0, 1, 2]:
+        print("Abriendo cámara...")
+        for indice in [1, 2, 0]:
             try:
                 self.camara = cv2.VideoCapture(indice)
                 if self.camara.isOpened():
-                    print(f"Cámara en índice {indice} inicializada.")
+                    print(f"Cámara {indice} inicializada.")
                     self.camara.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
                     self.camara.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-                    self.camara.set(cv2.CAP_PROP_FPS, 15)
-                    self.camara.set(cv2.CAP_PROP_BUFFERSIZE, 1)
                     return True
             except Exception as e:
                 print(f"Error al abrir cámara en índice {indice}: {e}")
                 if self.camara: self.camara.release()
         print("Error crítico: No se pudo inicializar ninguna cámara.")
         return False
-    
+
     def ejecutar(self, modo_visual: bool = False):
         if not self.iniciar_camara():
             self.sintetizador.decir("Error, no se pudo iniciar la cámara.")
             return
-            
+
         self.sintetizador.decir_inicio()
         time.sleep(1)
         self.ejecutando = True
         self._mostrar_controles()
-        
         ultimo_resultado_analisis = None
-        
+
         try:
             while self.ejecutando:
                 ret, frame = self.camara.read()
-                if not ret:
-                    print("Error al capturar imagen. Reintentando...")
+                if not ret or frame is None:
+                    print("Error al capturar imagen o frame nulo. Reintentando...")
                     time.sleep(0.5)
                     continue
-                
+
                 tiempo_actual = time.time()
                 frame_a_mostrar = frame.copy()
 
                 if tiempo_actual - self.ultimo_analisis >= self.intervalo_deteccion:
                     if not self.sintetizador.esta_hablando():
+                        print(f"\n Iniciando análisis (Modo: {self.modo_actual}) ---")
                         ultimo_resultado_analisis = self._analisis_periodico(frame)
                         self.ultimo_analisis = tiempo_actual
-                
+
                 if modo_visual:
                     if ultimo_resultado_analisis:
-                        if self.modo_actual in ['objetos', 'ambos']:
+                        if self.modo_actual in ['objetos', 'ambos'] and ultimo_resultado_analisis.get('objetos'):
                             frame_a_mostrar = self.analizador.dibujar_analisis(frame_a_mostrar, ultimo_resultado_analisis)
-                        if self.modo_actual in ['texto', 'ambos'] and 'textos' in ultimo_resultado_analisis:
-                            frame_a_mostrar = self.lector_ocr.dibujar_texto_detectado(frame_a_mostrar, ultimo_resultado_analisis['textos'])
+                        if self.modo_actual in ['texto', 'ambos'] and ultimo_resultado_analisis.get('textos'):
+                            try:
+                                frame_a_mostrar = self.lector_ocr.dibujar_texto_detectado(frame_a_mostrar, ultimo_resultado_analisis['textos'])
+                            except Exception as e_ocr_draw:
+                                print(f"Error al dibujar texto OCR: {e_ocr_draw}")
 
-                    texto_modo = f"Modo: {self.modo_actual.upper()}"
-                    cv2.putText(frame_a_mostrar, texto_modo, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    # MODO ACTUAL texto
+                    # texto_modo = f"Modo: {self.modo_actual.upper()}"
+                    # cv2.putText(frame_a_mostrar, texto_modo, (10, frame_a_mostrar.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+
                     cv2.imshow('RASVISION', frame_a_mostrar)
                     self._manejar_teclado(frame)
                 else:
                     time.sleep(0.1)
-                    
+
+        except KeyboardInterrupt:
+            print("\nInterrupción por teclado detectada.")
         except Exception as e:
-            print(f"Error inesperado en el bucle principal: {e}")
+            import traceback
+            print(f"Error FATAL inesperado en el bucle principal: {e}")
+            traceback.print_exc()
             self.sintetizador.decir_error()
         finally:
             self._limpiar_recursos()
 
     def _analisis_periodico(self, frame: np.ndarray) -> dict:
-        resultados = {}
-        if self.modo_actual in ['objetos', 'ambos']:
-            print("Analizando escena (objetos y contexto)...")
-            analisis_escena = self.analizador.analizar(frame, solo_prioritarios=True)
-            if analisis_escena.get('descripcion'):
-                self.sintetizador.decir(analisis_escena['descripcion'])
-            resultados.update(analisis_escena)
+        resultados_completos = {'objetos': [], 'contexto': [], 'descripcion': '', 'textos': []}
+        try:
+            if self.modo_actual in ['objetos', 'ambos']:
+                print("Analizando escena (objetos y contexto)...")
+                analisis_escena = self.analizador.analizar(frame, solo_prioritarios=True)
+                resultados_completos.update(analisis_escena)
+                if analisis_escena.get('objetos') or analisis_escena.get('contexto'):
+                    print(f"Descripción generada: {analisis_escena['descripcion']}")
+                    self.sintetizador.decir(analisis_escena['descripcion'])
+                else:
+                    print(" No se detectaron objetos/contexto prioritarios.")
 
-        if self.modo_actual in ['texto', 'ambos']:
-            print("Analizando texto (OCR)...")
-            textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
-            if textos:
-                descripcion_texto = self.lector_ocr.generar_descripcion_audio(textos, modo='resumen')
-                self.sintetizador.decir(descripcion_texto)
-            resultados['textos'] = textos
-        
-        return resultados
+            if self.modo_actual in ['texto', 'ambos']:
+                print("Analizando texto (OCR)...")
+                textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
+                resultados_completos['textos'] = textos
+                if textos:
+                    descripcion_texto = self.lector_ocr.generar_descripcion_audio(textos, modo='resumen')
+                    print(f"Texto OCR detectado: {descripcion_texto}")
+                    self.sintetizador.decir(descripcion_texto)
+                else:
+                    print("No se detectó texto OCR.")
+        except Exception as e:
+            print(f"Error durante el análisis periódico: {e}")
+            traceback.print_exc()
+            self.sintetizador.decir("Error durante el análisis.")
+        return resultados_completos
 
-    def _manejar_teclado(self, frame):
+    def _manejar_teclado(self, frame_original):
         key = cv2.waitKey(1) & 0xFF
-        if key == ord('q'): self.ejecutando = False
-        elif key == ord('o'): self._cambiar_modo('objetos')
-        elif key == ord('t'): self._cambiar_modo('texto')
-        elif key == ord('b'): self._cambiar_modo('ambos')
-        elif key == ord('a'): self._analisis_forzado(frame)
-        elif key == ord('v'): self._ajustar_volumen()
-        elif key == ord('r'): self._ajustar_velocidad()
-    
+        if key == ord('q'):
+            print("Cerrando por petición del usuario (tecla 'q')...")
+            self.ejecutando = False
+        elif key == ord('o'):
+            self._cambiar_modo('objetos')
+        elif key == ord('t'):
+            self._cambiar_modo('texto')
+        elif key == ord('b'):
+            self._cambiar_modo('ambos')
+        elif key == ord('a'):
+            self._analisis_forzado(frame_original)
+
     def _mostrar_controles(self):
-        print("\n--- Controles de RasVision ---")
-        print("'o' -> Modo Análisis de Escena")
-        print("'t' -> Modo Lectura de Texto (OCR)")
-        print("'b' -> Modo Completo (Todo)")
-        print("'a' -> Forzar Análisis Detallado Inmediato")
-        print("'v' -> Ajustar Volumen (en consola)")
-        print("'r' -> Ajustar Velocidad de Voz (en consola)")
-        print("'q' -> Salir")
-        print("--------------------------------")
+        print(" Controles de RasVision ")
+        print("'o' Modo Detección de Objetos")
+        print("'t' Modo Lectura de Texto (OCR)")
+        print("'b' Modo Ambos (Objetos + Texto)")
+        print("'a'Forzar Análisis Detallado Inmediato")
+        print("'q' Salir")
+        print(f"Modo actual: {self.modo_actual.upper()}")
 
     def _cambiar_modo(self, nuevo_modo: str):
-        if self.modo_actual == nuevo_modo: return
+        if self.modo_actual == nuevo_modo:
+            print(f"Ya estás en modo {nuevo_modo.upper()}.")
+            return
         self.modo_actual = nuevo_modo
         print(f"\nModo cambiado a: {nuevo_modo.upper()}")
-        anuncios = {'objetos': "Análisis de escena activado.", 'texto': "Lectura de texto activada.", 'ambos': "Modo completo activado."}
-        self.sintetizador.decir(anuncios[nuevo_modo], prioridad=True)
-            
-    def _analisis_forzado(self, frame):
-        print("--- Análisis Forzado Detallado ---")
+        anuncios = {'objetos': "Modo detección de objetos.",
+                    'texto': "Modo lectura de texto.",
+                    'ambos': "Modo detección completa."}
+        self.sintetizador.decir(anuncios.get(nuevo_modo, "Modo desconocido."), prioridad=True)
+
+    def _analisis_forzado(self, frame: np.ndarray):
+        print("\n Análisis Forzado Detallado")
+        if self.sintetizador.esta_hablando():
+            print("Esperando a que termine el audio actual...")
+            self.sintetizador.esperar_finalizacion(timeout=5)
+
         self.sintetizador.decir("Analizando escena en detalle.", prioridad=True)
-        
-        analisis_escena = self.analizador.analizar(frame, solo_prioritarios=False)
-        if analisis_escena.get('descripcion'):
+        try:
+            analisis_escena = self.analizador.analizar(frame, solo_prioritarios=False)
+            print(f"Descripción detallada generada: {analisis_escena['descripcion']}")
             self.sintetizador.decir(analisis_escena['descripcion'])
 
-        textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
-        if textos:
-            descripcion_detallada = self.lector_ocr.generar_descripcion_audio(textos, modo='completo')
-            self.sintetizador.decir(descripcion_detallada)
-        
-        if not analisis_escena.get('objetos') and not textos:
-            self.sintetizador.decir("No se encontraron objetos ni texto relevante.")
+            if self.modo_actual in ['texto', 'ambos']:
+                print("Analizando texto (OCR detallado)...")
+                textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
+                if textos:
+                    descripcion_detallada_ocr = self.lector_ocr.generar_descripcion_audio(textos, modo='completo')
+                    print(f"Texto OCR detallado: {descripcion_detallada_ocr}")
+                    self.sintetizador.decir(descripcion_detallada_ocr)
+                else:
+                    print("No se detectó texto OCR.")
 
-    def _ajustar_volumen(self):
-        try:
-            nuevo_volumen = float(input("Introduce el nuevo volumen (0.0 a 1.0): "))
-            self.sintetizador.configurar(volumen=nuevo_volumen)
-        except ValueError:
-            print("Entrada no válida.")
-
-    def _ajustar_velocidad(self):
-        try:
-            nueva_velocidad = int(input("Introduce la nueva velocidad (ej. 150, 180, 220): "))
-            self.sintetizador.configurar(velocidad=nueva_velocidad)
-        except ValueError:
-            print("Entrada no válida.")
+            objetos_encontrados = analisis_escena.get('objetos')
+            texto_encontrado = 'textos' in locals() and textos
+            if not objetos_encontrados and (self.modo_actual != 'texto' or not texto_encontrado):
+                self.sintetizador.decir("No se encontraron elementos relevantes en este análisis.")
+        except Exception as e:
+            print(f"Error durante el análisis forzado: {e}")
+            traceback.print_exc()
+            self.sintetizador.decir("Error durante el análisis detallado.")
 
     def _manejador_cierre(self, signal_num, frame):
-        print(f"\nSeñal {signal_num} recibida. Cerrando de forma ordenada...")
+        print(f"\nSeñal {signal_num} recibida. Iniciando cierre ordenado...")
         self.ejecutando = False
-    
+
     def _limpiar_recursos(self):
         print("Limpiando recursos...")
-        if self.camara and self.camara.isOpened():
+        if hasattr(self, 'camara') and self.camara and self.camara.isOpened():
             self.camara.release()
             print("Cámara liberada.")
         cv2.destroyAllWindows()
-        if self.sintetizador:
-            self.sintetizador.decir("Sistema desactivado.", prioridad=True)
-            self.sintetizador.esperar_finalizacion()
+        print("Ventanas de OpenCV cerradas.")
+        if hasattr(self, 'sintetizador') and self.sintetizador:
+            print("Solicitando finalización del sintetizador...")
+            self.sintetizador.decir("Sistema RasVision desactivado.", prioridad=True)
+            self.sintetizador.esperar_finalizacion(timeout=5)
             self.sintetizador.finalizar()
         print("Recursos liberados. ¡Adiós!")
 
 def mostrar_menu():
-    print("\n--- Bienvenido a RasVision ---")
+    print("\nBienvenido a RasVision ")
     print("1. Iniciar sistema completo (con ventana de video)")
     print("2. Iniciar sistema completo (solo audio, sin ventana)")
     print("3. Salir")
@@ -208,20 +235,27 @@ def main():
         while True:
             opcion = mostrar_menu()
             if opcion == '1':
+                print("\nIniciando en modo visual...")
                 gafas = GafasIACompleto()
                 gafas.ejecutar(modo_visual=True)
+                gafas = None
             elif opcion == '2':
+                print("\nIniciando en modo solo audio...")
                 gafas = GafasIACompleto()
                 gafas.ejecutar(modo_visual=False)
+                gafas = None
             elif opcion == '3':
+                print("Saliendo...")
                 break
             else:
                 print("Opción no válida. Inténtalo de nuevo.")
-            gafas = None 
     except Exception as e:
-        print(f"Error crítico en main: {e}")
+        import traceback
+        print(f"Error CRÍTICO en la ejecución principal: {e}")
+        traceback.print_exc()
     finally:
         if gafas and gafas.ejecutando:
+            print("\nRealizando limpieza final por salida inesperada...")
             gafas._limpiar_recursos()
         print("\nGracias por usar RasVision.")
 
