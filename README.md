@@ -8,40 +8,44 @@ El enfoque es casero y adaptable, pensado para que cualquier persona con conocim
 Además de su funcionalidad técnica, el proyecto busca fomentar la inclusión digital, la empatía social y el diseño centrado en el usuario, poniendo en primer plano las necesidades reales de quienes enfrentan barreras visuales en su día a día.
 
 ## Estructura
-Propenso a cambios 23/10/2025
+TERMINADO EL dom 26 oct 2025 22:04:39 
+INSTITUTO NACIONAL TECNICO INDUSTRIAL DS3A 2025
 
 ```javascript
-[Oct 23 08:30]  .
-├── [Oct 10 09:47]  camaras.py
-├── [Oct 23 07:11]  docs
-│   └── [Oct 23 07:11]  TRABAJAR_LUNES.TXT
-├── [Oct 23 08:30]  ejemplo_ocr_integrado.py
-├── [Oct 17 13:55]  libs
-│   ├── [Oct 17 13:55]  requirements_laptop.txt
-│   └── [Oct 17 13:55]  requirements.txt
-├── [Sep 30 09:37]  LICENSE
-├── [Oct 22 11:23]  models
-│   ├── [Oct 21 07:14]  deteccion
-│   │   └── [Oct 20 07:12]  escaleras.pt
-│   ├── [Oct 22 11:16]  rasvision_final_v2.pt
-│   └── [Oct  4 01:41]  tts
-│       └── [Oct  9 07:56]  es_ES-davefx-medium.onnx.json
-├── [Oct 23 07:11]  rasvision_final_v2.pt
-├── [Oct 17 13:55]  README.md
-├── [Oct 20 07:06]  src
-│   ├── [Oct 23 07:53]  audio
-│   │   ├── [Oct 23 07:53]  __pycache__
-│   │   └── [Oct 20 07:16]  sintetizador_voz.py
-│   ├── [Oct 23 08:33]  deteccion
-│   │   ├── [Oct 23 08:33]  analizador_escena.py
-│   │   └── [Oct 23 07:53]  __pycache__
-│   └── [Oct 23 07:53]  ocr
-│       ├── [Oct 20 07:09]  lector_texto.py
-│       └── [Oct 23 07:53]  __pycache__
-├── [Oct 18 13:59]  yolov8n.pt
-└── [Oct 20 02:07]  yolov8n-seg.pt
+[Oct 23 21:15]  .
+├── [Oct 10 22:00]  camaras.py
+├── [Oct 20 20:43]  docs
+│   └── [Oct 20 01:24]  TRABAJAR_LUNES.TXT
+├── [Oct 26 22:18]  ejemplo_ocr_integrado.py
+├── [Oct 17 02:19]  libs
+│   ├── [Oct 16 22:20]  requirements_laptop.txt
+│   └── [Oct  7 19:30]  requirements.txt
+├── [Sep 29 22:25]  LICENSE
+├── [Oct 22 23:25]  models
+│   ├── [Oct 26 21:46]  detecciones
+│   │   ├── [Oct 26 14:47]  Modelo_v3.pt
+│   │   ├── [Oct 26 21:46]  Modelo_V4.pt
+│   │   └── [Oct 22 21:46]  rasvision_final_v2.pt
+│   └── [Oct  3 18:45]  tts
+│       ├── [Oct  2 23:04]  es_ES-davefx-medium.onnx
+│       └── [Oct  2 23:04]  es_ES-davefx-medium.onnx.json
+├── [Oct 23 21:15]  rasvision_final_v2.pt
+├── [Oct 23 21:15]  README.md
+├── [Oct 22 21:59]  src
+│   ├── [Oct 26 21:50]  audio
+│   │   ├── [Oct 26 21:50]  __pycache__
+│   │   └── [Oct 17 02:16]  sintetizador_voz.py
+│   ├── [Oct 26 21:50]  deteccion
+│   │   ├── [Oct 26 15:01]  analizador_escena.py
+│   │   └── [Oct 26 21:50]  __pycache__
+│   └── [Oct 26 21:50]  ocr
+│       ├── [Oct 20 01:24]  lector_texto.py
+│       └── [Oct 26 21:50]  __pycache__
+├── [Oct  3 23:41]  temp_audio.wav
+├── [Oct 20 00:10]  yolov8n.pt
+└── [Oct 20 00:10]  yolov8n-seg.pt
 
-13 directories, 16 files
+13 directories, 19 files
 
 
 ```
@@ -60,6 +64,3 @@ Propenso a cambiar
  - [pyttsx3 (TTS)]()
  - [Torch (torchvision)]()
 - [YOLOv8n]()
-
-## Documentation
-En proceso
