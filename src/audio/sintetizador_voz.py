@@ -197,3 +197,4 @@ class SintetizadorVoz:
 
     def __del__(self):
         self.finalizar()
+        

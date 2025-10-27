@@ -14,7 +14,7 @@ class GafasIACompleto:
     def __init__(self):
         print("--- Inicializando Componentes de RasVision ---")
         self.analizador = AnalizadorEscena(
-            modelo_custom_path='models/rasvision_final_v2.pt', # Cargando v2
+            modelo_custom_path='models/detecciones/Modelo_V4.pt', # Cargando V4
             modelo_seg_path='yolov8n-seg.pt',
             confianza_minima=0.3
         )
@@ -237,7 +237,7 @@ def main():
             if opcion == '1':
                 print("\nIniciando en modo visual...")
                 gafas = GafasIACompleto()
-                gafas.ejecutar(modo_visual=TrueS)
+                gafas.ejecutar(modo_visual=True)
                 gafas = None
             elif opcion == '2':
                 print("\nIniciando en modo solo audio...")
@@ -262,3 +262,7 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+
+#*TERMINADO EL dom 26 oct 2025 22:04:39 
+#* INSTITUTO NACIONAL TECNICO INDUSTRIAL DS3A 2025
