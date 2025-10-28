@@ -1,0 +1,22 @@
+#LIBRERIAS PARA LA RASPERRY
+
+sudo apt install espeak ffmpeg libespeak1 libopenjp2-7 libatlas-base-dev -y
+
+#PYTORCH Y TORCHBISION 
+pip install torch==2.1.0 torchvision==0.16.0 --extra-index-url [https://download.pytorch.org/whl/cpu](https://download.pytorch.org/whl/cpu)
+
+ultralytics
+
+easyocr
+
+pyttsx3
+
+opencv-python-headless
+
+Flask
+
+
+sudo apt update
+sudo apt install espeak ffmpeg libopenjp2-7 libatlas-base-dev
+
+ pip install ultralytics easyocr pyttsx3 opencv-python-headless Flask
