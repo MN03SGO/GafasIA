@@ -6,20 +6,18 @@ from typing import List, Dict
 from collections import Counter
 import textwrap
 import re
-import traceback # Para imprimir errores detallados
+import traceback # TEMPORAL
+
 
 class AnalizadorEscena:
-    """
-    Versión con corrección final en la lógica de mapeo dinámico de clases (UnboundLocalError).
-    Modo depuración DESACTIVADO para entrega final.
-    """
+
     def __init__(self, modelo_det_path: str = 'yolov8n.pt', modelo_seg_path: str = 'yolov8n-seg.pt',
-                 confianza_minima: float = 0.4, modelo_custom_path: str = None):
+                confianza_minima: float = 0.4, modelo_custom_path: str = None):
 
         print("Inicializando Analizador de Escena...")
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         print(f"Usando dispositivo: {self.device}")
-
+        
         ruta_modelo_det = modelo_custom_path or modelo_det_path
         print(f"Cargando modelo de detección desde: {ruta_modelo_det}")
         try:
@@ -33,22 +31,21 @@ class AnalizadorEscena:
         try:
             self.modelo_segmentacion = YOLO(modelo_seg_path)
         except Exception as e:
-             print(f"ADVERTENCIA: No se pudo cargar modelo de segmentación '{modelo_seg_path}': {e}. Contexto desactivado.")
-             self.modelo_segmentacion = None
+            print(f"ADVERTENCIA: No se pudo cargar modelo de segmentación '{modelo_seg_path}': {e}. Contexto desactivado.")
+            self.modelo_segmentacion = None
 
         self.confianza_minima_real = confianza_minima
-        # --- MODO DEPURACIÓN DESACTIVADO ---
-        print(f"Umbral de confianza para descripción: {self.confianza_minima_real}")
+        print(f"Umbral de confianza para descripción: {self.confianza_minima_real}") #DEPURACION 
 
         # Diccionario de traducción completo
         self.ETIQUETAS_INGLES_A_ESPANOL = {
-             'Dime': 'moneda de diez centavos','Fifty': 'billete de cincuenta dólares','Five': 'billete de cinco dólares','Hundred': 'billete de cien dólares','Nickel': 'moneda de cinco centavos','One': 'billete de un dólar','Penny': 'moneda de un centavo','Quarter': 'moneda de veinticinco centavos','Ten': 'billete de diez dólares','Twenty': 'billete de veinte dólares','Two': 'billete de dos dólares','aeroplane': 'avión','ascending': 'escaleras que suben','backpack': 'mochila','banana': 'plátano','baseball bat': 'bate de béisbol','baseball glove': 'guante de béisbol','bear': 'oso','bed': 'cama','bench': 'banco','bicycle': 'bicicleta','bird': 'pájaro','boat': 'barco','book': 'libro','bottle': 'botella','bowl': 'tazón','broccoli': 'brócoli','bus': 'autobús','cake': 'pastel','car': 'automóvil','carrot': 'zanahoria','cat': 'gato','cell phone': 'celular','chair': 'silla','clock': 'reloj','cup': 'taza','descending': 'escaleras que bajan','diningtable': 'mesa de comedor','dog': 'perro','donut': 'dona','elephant': 'elefante','fifty': 'billete de cincuenta dólares','five': 'billete de cinco dólares','fork': 'tenedor','frisbee': 'frisbee','giraffe': 'jirafa','handbag': 'bolso','horse': 'caballo','hot dog': 'perro caliente','hundred': 'billete de cien dólares','kite': 'cometa','knife': 'cuchillo','laptop': 'computadora portátil','microwave': 'microondas','motorbike': 'motocicleta','mouse': 'ratón','one': 'billete de un dólar','orange': 'naranja','oven': 'horno','person': 'persona','pizza': 'pizza','pottedplant': 'planta en maceta','refrigerator': 'refrigerador','remote': 'control remoto','sandwich': 'sándwich','scissors': 'tijeras','sink': 'fregadero','skateboard': 'patineta','skis': 'esquís','snowboard': 'tabla de snowboard','sofa': 'sofá','spoon': 'cuchara','sports ball': 'pelota deportiva','stop sign': 'señal de alto','suitcase': 'maleta','teddy bear': 'osito de peluche','ten': 'billete de diez dólares','tennis racket': 'raqueta de tenis','tie': 'corbata','toilet': 'inodoro','toothbrush': 'cepillo de dientes','traffic light': 'semáforo','train': 'tren','truck': 'camión','tvmonitor': 'televisor','twenty': 'billete de veinte dólares','umbrella': 'paraguas','vase': 'florero','walls': 'pared','wine glass': 'copa de vino','zebra': 'cebra', 'papel higienico': 'papel higiénico', # Añadida traducción
-             'Lemon':'limón', 'Lime':'lima', 'Pear':'pera', 'Garlic':'ajo', # Añadidas frutas/veg
-             'Potato':'papa', 'Pumpkin':'calabaza', 'Tomato':'tomate', 'Capsicum':'pimiento'
+            'Dime': 'moneda de diez centavos','Fifty': 'billete de cincuenta dólares','Five': 'billete de cinco dólares','Hundred': 'billete de cien dólares','Nickel': 'moneda de cinco centavos','One': 'billete de un dólar','Penny': 'moneda de un centavo','Quarter': 'moneda de veinticinco centavos','Ten': 'billete de diez dólares','Twenty': 'billete de veinte dólares','Two': 'billete de dos dólares','aeroplane': 'avión','ascending': 'escaleras que suben','backpack': 'mochila','banana': 'plátano','baseball bat': 'bate de béisbol','baseball glove': 'guante de béisbol','bear': 'oso','bed': 'cama','bench': 'banco','bicycle': 'bicicleta','bird': 'pájaro','boat': 'barco','book': 'libro','bottle': 'botella','bowl': 'tazón','broccoli': 'brócoli','bus': 'autobús','cake': 'pastel','car': 'automóvil','carrot': 'zanahoria','cat': 'gato','cell phone': 'celular','chair': 'silla','clock': 'reloj','cup': 'taza','descending': 'escaleras que bajan','diningtable': 'mesa de comedor','dog': 'perro','donut': 'dona','elephant': 'elefante','fifty': 'billete de cincuenta dólares','five': 'billete de cinco dólares','fork': 'tenedor','frisbee': 'frisbee','giraffe': 'jirafa','handbag': 'bolso','horse': 'caballo','hot dog': 'perro caliente','hundred': 'billete de cien dólares','kite': 'cometa','knife': 'cuchillo','laptop': 'computadora portátil','microwave': 'microondas','motorbike': 'motocicleta','mouse': 'ratón','one': 'billete de un dólar','orange': 'naranja','oven': 'horno','person': 'persona','pizza': 'pizza','pottedplant': 'planta en maceta','refrigerator': 'refrigerador','remote': 'control remoto','sandwich': 'sándwich','scissors': 'tijeras','sink': 'fregadero','skateboard': 'patineta','skis': 'esquís','snowboard': 'tabla de snowboard','sofa': 'sofá','spoon': 'cuchara','sports ball': 'pelota deportiva','stop sign': 'señal de alto','suitcase': 'maleta','teddy bear': 'osito de peluche','ten': 'billete de diez dólares','tennis racket': 'raqueta de tenis','tie': 'corbata','toilet': 'inodoro','toothbrush': 'cepillo de dientes','traffic light': 'semáforo','train': 'tren','truck': 'camión','tvmonitor': 'televisor','twenty': 'billete de veinte dólares','umbrella': 'paraguas','vase': 'florero','walls': 'pared','wine glass': 'copa de vino','zebra': 'cebra', 'papel higienico': 'papel higiénico', # Añadida traducción
+            'Lemon':'limón', 'Lime':'lima', 'Pear':'pera', 'Garlic':'ajo', # Añadidas frutas/veg dom 26 oct 2025 22:04:39 
+            'Potato':'papa', 'Pumpkin':'calabaza', 'Tomato':'tomate', 'Capsicum':'pimiento'
         }
 
-        # --- LÓGICA DE CARGA DINÁMICA CORREGIDA ---
-        self.etiquetas_es = {} # Empezar vacío, se llenará dinámicamente
+        
+        self.etiquetas_es = {}
         self.mapa_ids_modelo_a_sistema = {}
         nombres_del_modelo_en_ingles = {}
         try:
@@ -56,62 +53,55 @@ class AnalizadorEscena:
             if not nombres_del_modelo_en_ingles: raise ValueError("Modelo sin nombres de clases.")
             print(f"Clases detectadas en modelo ({len(nombres_del_modelo_en_ingles)}): {list(nombres_del_modelo_en_ingles.values())}")
         except Exception as e:
-             print(f"!!! ERROR LEYENDO CLASES DEL MODELO: {e}. Mapeo vacío. !!!")
+            print(f"!!! ERROR LEYENDO CLASES DEL MODELO: {e}. Mapeo vacío. !!!")
 
         id_sistema_actual = 0
         ids_usados = set()
         if nombres_del_modelo_en_ingles:
             for id_modelo, nombre_clase_en_ingles in nombres_del_modelo_en_ingles.items():
-                id_sistema_final_para_este_modelo = None # ID del sistema que le corresponde a este ID del modelo
+                id_sistema_final_para_este_modelo = None #id
                 nombre_clase_es = self.ETIQUETAS_INGLES_A_ESPANOL.get(nombre_clase_en_ingles)
 
                 if not nombre_clase_es:
-                    #print(f"  -> Advertencia: Clase '{nombre_clase_en_ingles}' (ID Mod:{id_modelo}) sin traducción. Se ignorará.")
-                    continue # Saltar si no tenemos traducción
-
-                # Verificar si el nombre en ESPAÑOL ya existe en nuestro diccionario final
+                    continue # si no hay tradu salta
                 id_existente = next((id_sis for id_sis, nombre in self.etiquetas_es.items() if nombre == nombre_clase_es), None)
 
                 if id_existente is not None:
-                    # Si ya existe, usamos ese ID
                     id_sistema_final_para_este_modelo = id_existente
                 else:
-                    # Si no existe, creamos un nuevo ID de sistema
                     while id_sistema_actual in ids_usados:
                         id_sistema_actual += 1
                     id_sistema_final_para_este_modelo = id_sistema_actual
-                    # Añadimos la nueva clase (español) y su ID al diccionario final
                     self.etiquetas_es[id_sistema_final_para_este_modelo] = nombre_clase_es
                     ids_usados.add(id_sistema_final_para_este_modelo)
                     print(f"  -> Clase '{nombre_clase_es}' registrada en el sistema con ID: {id_sistema_final_para_este_modelo}")
-                    id_sistema_actual += 1 # Incrementar para la próxima clase nueva
+                    id_sistema_actual += 1 
 
-                # Mapear el ID original del modelo a su ID final en nuestro sistema
                 self.mapa_ids_modelo_a_sistema[id_modelo] = id_sistema_final_para_este_modelo
         else:
-             print("!!! ERROR CRÍTICO: No se pudo mapear ninguna clase del modelo. !!!")
+            print("!!! ERROR CRÍTICO: No se pudo mapear ninguna clase del modelo. !!!")
 
-        # Diccionario de artículos (Actualizado con frutas/verduras/papel)
+        # Diccionario de artículos (Actualizado con frutas/verduras/papel) dom 26 oct 2025 22:04:39 
         self.articulos_es = { 'persona': 'una', 'bicicleta': 'una', 'automóvil': 'un', 'motocicleta': 'una', 'avión': 'un', 'autobús': 'un', 'tren': 'un', 'camión': 'un', 'barco': 'un', 'semáforo': 'un', 'boca de incendios': 'una', 'señal de alto': 'una', 'parquímetro': 'un', 'banco': 'un', 'pájaro': 'un', 'gato': 'un', 'perro': 'un', 'caballo': 'un', 'oveja': 'una', 'vaca': 'una', 'elefante': 'un', 'oso': 'un', 'cebra': 'una', 'jirafa': 'una', 'mochila': 'una', 'paraguas': 'un', 'bolso': 'un', 'corbata': 'una', 'maleta': 'una', 'frisbee': 'un', 'esquís': 'unos', 'tabla de snowboard': 'una', 'pelota deportiva': 'una', 'cometa': 'una', 'bate de béisbol': 'un', 'guante de béisbol': 'un', 'patineta': 'una', 'tabla de surf': 'una', 'raqueta de tenis': 'una', 'botella': 'una', 'copa de vino': 'una', 'taza': 'una', 'tenedor': 'un', 'cuchillo': 'un', 'cuchara': 'una', 'tazón': 'un', 'plátano': 'un', 'manzana': 'una', 'sándwich': 'un', 'naranja': 'una', 'brócoli': 'un', 'zanahoria': 'una', 'perro caliente': 'un', 'pizza': 'una', 'dona': 'una', 'pastel': 'un', 'silla': 'una', 'sofá': 'un', 'planta en maceta': 'una', 'cama': 'una', 'mesa de comedor': 'una', 'inodoro': 'un', 'televisor': 'un', 'computadora portátil': 'una', 'ratón': 'un', 'control remoto': 'un', 'teclado': 'un', 'celular': 'un', 'microondas': 'un', 'horno': 'un', 'tostadora': 'una', 'fregadero': 'un', 'refrigerador': 'un', 'libro': 'un', 'reloj': 'un', 'florero': 'un', 'tijeras': 'unas', 'osito de peluche': 'un', 'secador de cabello': 'un', 'cepillo de dientes': 'un',
-                           'escaleras': 'unas', 'escaleras que suben': 'unas', 'escaleras que bajan': 'unas', 'pared': 'una',
-                           'billete de un dólar': 'un', 'billete de cinco dólares': 'un', 'billete de diez dólares': 'un', 'billete de veinte dólares': 'un', 'billete de cincuenta dólares': 'un', 'billete de cien dólares': 'un', 'billete de dos dólares':'un',
-                           'moneda de un centavo': 'una', 'moneda de cinco centavos': 'una', 'moneda de diez centavos': 'una', 'moneda de veinticinco centavos': 'una',
-                           'papel higiénico': 'un', 'limón': 'un', 'lima': 'una', 'pera': 'una', 'ajo': 'un', 'papa': 'una', 'calabaza': 'una', 'tomate': 'un', 'pimiento': 'un' }
+                        'escaleras': 'unas', 'escaleras que suben': 'unas', 'escaleras que bajan': 'unas', 'pared': 'una',
+                        'billete de un dólar': 'un', 'billete de cinco dólares': 'un', 'billete de diez dólares': 'un', 'billete de veinte dólares': 'un', 'billete de cincuenta dólares': 'un', 'billete de cien dólares': 'un', 'billete de dos dólares':'un',
+                        'moneda de un centavo': 'una', 'moneda de cinco centavos': 'una', 'moneda de diez centavos': 'una', 'moneda de veinticinco centavos': 'una',
+                        'papel higiénico': 'un', 'limón': 'un', 'lima': 'una', 'pera': 'una', 'ajo': 'un', 'papa': 'una', 'calabaza': 'una', 'tomate': 'un', 'pimiento': 'un' }
 
 
-        nombres_prioritarios = { 'persona', 'automóvil', 'motocicleta', 'autobús', 'mochila', 'botella', 'taza', 'silla', 'sofá', 'cama', 'mesa de comedor', 'inodoro', 'televisor', 'computadora portátil', 'control remoto', 'celular', 'libro', 'escaleras', 'escaleras que suben', 'escaleras que bajan', 'pared', 'billete de un dólar', 'billete de cinco dólares', 'billete de diez dólares', 'billete de veinte dólares', 'billete de cincuenta dólares', 'billete de cien dólares', 'billete de dos dólares', 'moneda de un centavo', 'moneda de cinco centavos', 'moneda de diez centavos', 'moneda de veinticinco centavos', 'papel higiénico', 'limón', 'lima', 'pera', 'ajo', 'papa', 'calabaza', 'tomate', 'pimiento'}
+        nombres_prioritarios = { 'persona', 'automóvil', 'motocicleta', 'autobús', 'mochila', 'botella', 'taza', 'silla', 'sofá', 'cama', 'mesa de comedor', 'inodoro', 'televisor', 'computadora portátil', 'control remoto', 'celular', 'libro', 'escaleras', 'escaleras que suben', 'escaleras que bajan', 'pared', 'billete de un dólar', 'billete de cinco dólares', 'billete de diez dólares', 'billete de veinte dólares', 'billete de cincuenta dólares', 'billete de cien dólares', 'billete de dos dólares', 'moneda de un centavo', 'moneda de cinco centavos', 'moneda de diez centavos', 'moneda de veinticinco centavos', 'papel higiénico', 'limón','pera', 'ajo', 'papa', 'tomate'}
         self.objetos_prioritarios = {id for id, nombre in self.etiquetas_es.items() if nombre in nombres_prioritarios}
 
         print(f"IDs de sistema mapeados ({len(self.mapa_ids_modelo_a_sistema)}): OK")
         print(f"Etiquetas finales en español ({len(self.etiquetas_es)}): OK")
         print("Analizador inicializado correctamente.")
 
-    # --- El resto de la clase se mantiene igual ---
+    #v2
     def _detectar_objetos_principales(self, imagen: np.ndarray, solo_prioritarios: bool) -> List[Dict]:
         detecciones = []
         if not hasattr(self.modelo_deteccion, 'model') or not hasattr(self.modelo_deteccion.model, 'names'):
-             print("ERROR: Modelo de detección no cargado/inválido.")
-             return detecciones
+            print("ERROR: Modelo de detección no cargado/inválido.")
+            return detecciones
 
         resultados = self.modelo_deteccion(imagen, conf=self.confianza_minima_real, verbose=False, device=self.device)
         altura_img, ancho_img = imagen.shape[:2]
@@ -202,19 +192,16 @@ class AnalizadorEscena:
                 if partes[-1].endswith('.'): partes[-1] = partes[-1][:-1]
                 partes.append(contexto_str)
             else:
-                 return f"El entorno parece tener {', '.join(contexto)}.".capitalize()
+                return f"El entorno parece tener {', '.join(contexto)}.".capitalize()
 
         if not partes: return "No se detectan objetos prioritarios en la escena."
-
         descripcion_final = " ".join(partes).capitalize()
         descripcion_final = re.sub(r'\s*\.+\s*$', '', descripcion_final) + '.'
         descripcion_final = re.sub(r'\s{2,}', ' ', descripcion_final).strip()
 
         if descripcion_final == "Hay una persona." and personas:
-             p = personas[0]
-             return f"Hay una persona {p.get('distancia_relativa','')} {p.get('posicion','')}".strip().capitalize() + "."
-
-
+            p = personas[0]
+            return f"Hay una persona {p.get('distancia_relativa','')} {p.get('posicion','')}".strip().capitalize() + "."
         return descripcion_final
 
     def analizar(self, imagen: np.ndarray, solo_prioritarios: bool = True) -> Dict:
@@ -222,7 +209,6 @@ class AnalizadorEscena:
             objetos_detectados = self._detectar_objetos_principales(imagen, solo_prioritarios)
             contexto_escena = self._analizar_contexto_escena(imagen)
             descripcion_completa = self._generar_descripcion_completa(objetos_detectados, contexto_escena)
-
             return {
                 'objetos': objetos_detectados,
                 'contexto': contexto_escena,
@@ -236,7 +222,6 @@ class AnalizadorEscena:
 
     def _analizar_contexto_escena(self, imagen: np.ndarray) -> List[str]:
         if self.modelo_segmentacion is None: return []
-
         clases_contexto_map = { 'road': 'carretera', 'sidewalk': 'acera', 'building': 'edificios', 'wall': 'muro', 'sky': 'cielo', 'grass': 'césped', 'tree': 'árboles' }
         contexto_detectado = set()
         try:
@@ -330,7 +315,10 @@ class AnalizadorEscena:
                 cv2.putText(frame_resultado, line, (10, text_y_desc), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
 
         except Exception as e:
-             print(f"Error al dibujar texto de descripción: {e}")
-
-
+            print(f"Error al dibujar texto de descripción: {e}")
         return frame_resultado
+
+
+#*TERMINADO EL dom 26 oct 2025 22:04:39 
+#* INSTITUTO NACIONAL TECNICO INDUSTRIAL DS3A 2025
+          
