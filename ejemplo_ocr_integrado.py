@@ -5,14 +5,20 @@ import torch
 import numpy as np
 import sys
 import traceback
-from ultralytics import YOLO
+
+try:
+    from picamera2 import Picamera2
+    print("Picamera2 importada exitosamente.")
+except ImportError:
+    print("No se pudo importar Picamera2.")
+    sys.exit(1)
 from src.ocr.lector_texto import LectorTexto
 from src.audio.sintetizador_voz import SintetizadorVoz
 from src.deteccion.analizador_escena import AnalizadorEscena
 
 class GafasIACompleto:
     def __init__(self):
-        print("--- Inicializando Componentes de RasVision ---")
+        print("Inicializando de RasVision")
         self.analizador = AnalizadorEscena(
             modelo_custom_path='models/detecciones/Modelo_V4.pt', # Cargando V4
             modelo_seg_path='yolov8n-seg.pt',
@@ -31,32 +37,40 @@ class GafasIACompleto:
         self.modo_actual = 'objetos'
         self.intervalo_deteccion = 4
         self.ultimo_analisis = 0
-        self.camara = None
+        self.picam2 = None # cambiado de camera
         self.ejecutando = False
 
+        self.jpeg_quality = 50 #calidad de la imagen, pare mejor transmision lo deje en 50
         signal.signal(signal.SIGINT, self._manejador_cierre)
         signal.signal(signal.SIGTERM, self._manejador_cierre)
 
+
     def iniciar_camara(self):
-        print("Abriendo cámara...")
-        for indice in [1, 2, 0]:
-            try:
-                self.camara = cv2.VideoCapture(indice)
-                if self.camara.isOpened():
-                    print(f"Cámara {indice} inicializada.")
-                    self.camara.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                    self.camara.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-                    return True
-            except Exception as e:
-                print(f"Error al abrir cámara en índice {indice}: {e}")
-                if self.camara: self.camara.release()
-        print("Error crítico: No se pudo inicializar ninguna cámara.")
-        return False
+        print("Abriendo cámara picamera")
+        try:
+            self.picam2 = Picamera2()
+            config = self.picam2.create_preview_configuration(
+                main={"format": "RGB888", "size": (640, 480)}
+            )
+            self.picam2.configure(config)
+            self.picam2.start()
+            print("Picamera2 inicializada y configurada.")
+            time.sleep(1.0) #  un segundo de esperra para  iniciar
+            return True
+        except Exception as e:
+            print(f"Error al inicializar Picamera2: {e}")
+            traceback.print_exc()
+            if self.picam2:
+                self.picam2.stop()
+            self.picam2 = None
+            return False
 
     def ejecutar(self, modo_visual: bool = False):
-        if not self.iniciar_camara():
-            self.sintetizador.decir("Error, no se pudo iniciar la cámara.")
-            return
+        if not self.picam2 or not self.picam2.started:
+            print(" cámara no está lista. Iniciando...")
+            if not self.iniciar_camara():
+                self.sintetizador.decir("Error, no se pudo iniciar la cámara.")
+                return
 
         self.sintetizador.decir_inicio()
         time.sleep(1)
@@ -66,19 +80,20 @@ class GafasIACompleto:
 
         try:
             while self.ejecutando:
-                ret, frame = self.camara.read()
-                if not ret or frame is None:
+                frame_rgb = self.picam2.capture_array()
+                if frame_rgb is None:
                     print("Error al capturar imagen o frame nulo. Reintentando...")
                     time.sleep(0.5)
                     continue
-
+                frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+                
                 tiempo_actual = time.time()
-                frame_a_mostrar = frame.copy()
+                frame_a_mostrar = frame_bgr.copy() 
 
                 if tiempo_actual - self.ultimo_analisis >= self.intervalo_deteccion:
                     if not self.sintetizador.esta_hablando():
                         print(f"\n Iniciando análisis (Modo: {self.modo_actual}) ---")
-                        ultimo_resultado_analisis = self._analisis_periodico(frame)
+                        ultimo_resultado_analisis = self._analisis_periodico(frame_rgb)
                         self.ultimo_analisis = tiempo_actual
 
                 if modo_visual:
@@ -91,12 +106,8 @@ class GafasIACompleto:
                             except Exception as e_ocr_draw:
                                 print(f"Error al dibujar texto OCR: {e_ocr_draw}")
 
-                    # MODO ACTUAL texto
-                    # texto_modo = f"Modo: {self.modo_actual.upper()}"
-                    # cv2.putText(frame_a_mostrar, texto_modo, (10, frame_a_mostrar.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-
                     cv2.imshow('RASVISION', frame_a_mostrar)
-                    self._manejar_teclado(frame)
+                    self._manejar_teclado(frame_rgb) 
                 else:
                     time.sleep(0.1)
 
@@ -110,12 +121,12 @@ class GafasIACompleto:
         finally:
             self._limpiar_recursos()
 
-    def _analisis_periodico(self, frame: np.ndarray) -> dict:
+    def _analisis_periodico(self, frame_rgb: np.ndarray) -> dict:
         resultados_completos = {'objetos': [], 'contexto': [], 'descripcion': '', 'textos': []}
         try:
             if self.modo_actual in ['objetos', 'ambos']:
                 print("Analizando escena (objetos y contexto)...")
-                analisis_escena = self.analizador.analizar(frame, solo_prioritarios=True)
+                analisis_escena = self.analizador.analizar(frame_rgb, solo_prioritarios=True)
                 resultados_completos.update(analisis_escena)
                 if analisis_escena.get('objetos') or analisis_escena.get('contexto'):
                     print(f"Descripción generada: {analisis_escena['descripcion']}")
@@ -125,7 +136,7 @@ class GafasIACompleto:
 
             if self.modo_actual in ['texto', 'ambos']:
                 print("Analizando texto (OCR)...")
-                textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
+                textos = self.lector_ocr.detectar_texto(frame_rgb, mejorar_imagen=True)
                 resultados_completos['textos'] = textos
                 if textos:
                     descripcion_texto = self.lector_ocr.generar_descripcion_audio(textos, modo='resumen')
@@ -139,7 +150,7 @@ class GafasIACompleto:
             self.sintetizador.decir("Error durante el análisis.")
         return resultados_completos
 
-    def _manejar_teclado(self, frame_original):
+    def _manejar_teclado(self, frame_original_rgb):
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             print("Cerrando por petición del usuario (tecla 'q')...")
@@ -151,7 +162,7 @@ class GafasIACompleto:
         elif key == ord('b'):
             self._cambiar_modo('ambos')
         elif key == ord('a'):
-            self._analisis_forzado(frame_original)
+            self._analisis_forzado(frame_original_rgb)
 
     def _mostrar_controles(self):
         print(" Controles de RasVision ")
@@ -173,7 +184,7 @@ class GafasIACompleto:
                     'ambos': "Modo detección completa."}
         self.sintetizador.decir(anuncios.get(nuevo_modo, "Modo desconocido."), prioridad=True)
 
-    def _analisis_forzado(self, frame: np.ndarray):
+    def _analisis_forzado(self, frame_rgb: np.ndarray):
         print("\n Análisis Forzado Detallado")
         if self.sintetizador.esta_hablando():
             print("Esperando a que termine el audio actual...")
@@ -181,13 +192,13 @@ class GafasIACompleto:
 
         self.sintetizador.decir("Analizando escena en detalle.", prioridad=True)
         try:
-            analisis_escena = self.analizador.analizar(frame, solo_prioritarios=False)
+            analisis_escena = self.analizador.analizar(frame_rgb, solo_prioritarios=False)
             print(f"Descripción detallada generada: {analisis_escena['descripcion']}")
             self.sintetizador.decir(analisis_escena['descripcion'])
 
             if self.modo_actual in ['texto', 'ambos']:
                 print("Analizando texto (OCR detallado)...")
-                textos = self.lector_ocr.detectar_texto(frame, mejorar_imagen=True)
+                textos = self.lector_ocr.detectar_texto(frame_rgb, mejorar_imagen=True)
                 if textos:
                     descripcion_detallada_ocr = self.lector_ocr.generar_descripcion_audio(textos, modo='completo')
                     print(f"Texto OCR detallado: {descripcion_detallada_ocr}")
@@ -207,12 +218,13 @@ class GafasIACompleto:
     def _manejador_cierre(self, signal_num, frame):
         print(f"\nSeñal {signal_num} recibida. Iniciando cierre ordenado...")
         self.ejecutando = False
-
+        
     def _limpiar_recursos(self):
         print("Limpiando recursos...")
-        if hasattr(self, 'camara') and self.camara and self.camara.isOpened():
-            self.camara.release()
-            print("Cámara liberada.")
+        if hasattr(self, 'picam2') and self.picam2:
+            self.picam2.stop()
+            print("Cámara Picamera2 detenida.")
+
         cv2.destroyAllWindows()
         print("Ventanas de OpenCV cerradas.")
         if hasattr(self, 'sintetizador') and self.sintetizador:
@@ -222,12 +234,59 @@ class GafasIACompleto:
             self.sintetizador.finalizar()
         print("Recursos liberados. ¡Adiós!")
 
+    def generar_frames_flask(self):
+        print("Iniciando generador de frames para Flask...")
+        if not self.picam2 or not self.picam2.started:
+            if not self.iniciar_camara():
+                print("No se pudo iniciar la cámara para Flask.")
+                return
+
+        # Parámetros de codificación JPEG
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), self.jpeg_quality]
+
+        self.ejecutando = True
+        while self.ejecutando:
+            try:
+                frame_rgb = self.picam2.capture_array()
+                if frame_rgb is None:
+                    continue
+                
+                resultados_completos = {}
+                analisis_escena = self.analizador.analizar(frame_rgb, solo_prioritarios=True)
+                resultados_completos.update(analisis_escena)
+                textos = self.lector_ocr.detectar_texto(frame_rgb, mejorar_imagen=False) # 'mejorar' es lento
+                resultados_completos['textos'] = textos
+                frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+                frame_a_mostrar = frame_bgr
+                if resultados_completos.get('objetos'):
+                    frame_a_mostrar = self.analizador.dibujar_analisis(frame_a_mostrar, resultados_completos)
+                if resultados_completos.get('textos'):
+                    frame_a_mostrar = self.lector_ocr.dibujar_texto_detectado(frame_a_mostrar, resultados_completos['textos'])
+
+                (flag, encodedImage) = cv2.imencode(".jpg", frame_a_mostrar, encode_param)
+                if not flag:
+                    continue
+
+
+                yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
+                    bytearray(encodedImage) + b'\r\n')
+            
+            except Exception as e:
+                print(f"Error en bucle Flask: {e}")
+                traceback.print_exc()
+                time.sleep(1.0)
+        
+        print("Bucle de generación de frames terminado.")
+        self._limpiar_recursos()
+
+
 def mostrar_menu():
     print("\nBienvenido a RasVision ")
     print("1. Iniciar sistema completo (con ventana de video)")
     print("2. Iniciar sistema completo (solo audio, sin ventana)")
     print("3. Salir")
-    return input("Selecciona una opción: ").strip()
+    print("---")
+    return input("Selecciona una opción (1-3): ").strip()
 
 def main():
     gafas = None
@@ -238,7 +297,7 @@ def main():
                 print("\nIniciando en modo visual...")
                 gafas = GafasIACompleto()
                 gafas.ejecutar(modo_visual=True)
-                gafas = None
+                gafas = None 
             elif opcion == '2':
                 print("\nIniciando en modo solo audio...")
                 gafas = GafasIACompleto()
@@ -264,5 +323,3 @@ if __name__ == "__main__":
 
 
 
-#*TERMINADO EL dom 26 oct 2025 22:04:39 
-#* INSTITUTO NACIONAL TECNICO INDUSTRIAL DS3A 2025
