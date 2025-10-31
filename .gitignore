@@ -27,7 +27,7 @@ config/
 *.png
 
 # Modelos grandes
-*.pt
+.pt
 *.onnx
 
 # Carpetas ocultas de sistemas Linux
