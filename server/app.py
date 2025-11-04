@@ -15,14 +15,14 @@ app = Flask(__name__, template_folder=template_folder_path)
 
 print("instancia global")
 gafas = GafasIACompleto()
-gafas.ejecutando = True #bandera para el bucle del generador
+gafas.ejecutando = True 
 
-@stream_with_context #generador de video web
+@stream_with_context 
 def generador_web():
     try:
         if not gafas.picam2 or not gafas.picam2.started:
             if not gafas.iniciar_camara():
-                print(" No se pudo iniciar la cámara para el generador web.")
+                print("No se pudo abrir camara en la pagina")
                 return
         for frame_bytes in gafas.generar_frames_flask():
             yield frame_bytes
@@ -31,7 +31,7 @@ def generador_web():
         print(f"Error en el generador web de Flask: {e}")
     finally:
         print("El stream de video se ha detenido.")
-        # espera, para poder reconectar
+        
 
 @app.route('/')
 def index():

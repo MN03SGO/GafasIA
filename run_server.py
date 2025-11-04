@@ -7,40 +7,39 @@ import sys
 import os
 import time
 from flask import Flask, render_template, Response
-import pyttsx3
+# --- CAMBIO: Importamos tu clase desde 'src.audio' ---
+from src.audio.sintetizador_voz import SintetizadorVoz
+
 
 # --- FIX: Agregar 'src' al path de Python ---
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# (Asegurarse de que 'src' esté en el path para encontrar 'audio')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__))) 
 
-# --- IMPORTANTE ---
-# Este script espera que las carpetas 'src', 'models', 'templates' y 'static'
-# estén en el mismo directorio.
 
 try:
-    from ocr.lector_texto import LectorTexto
-    from deteccion.analizador_escena import AnalizadorEscena
+    from src.ocr.lector_texto import LectorTexto
+    from src.deteccion.analizador_escena import AnalizadorEscena
 except ImportError as e:
     print(f"Error al importar módulos: {e}")
-    print("Asegúrate de que 'src' contenga las carpetas 'ocr' y 'deteccion'.")
+    # --- CAMBIO: Mensaje de error corregido ---
+    print("Asegúrate de que 'src' contenga 'ocr', 'deteccion' y 'audio'.")
     sys.exit(1)
 
-# --- Configuración del Servidor ---
+
 HOST_IP = '0.0.0.0'
 HOST_PORT = 9999
 FLASK_PORT = 5000
 
-# --- Variables Globales ---
+
 latest_processed_frame = None
 frame_lock = threading.Lock()
 objetos_detectados_anteriormente = set()
-tts_lock = threading.Lock()
 
-# --- Inicialización de la IA ---
-print("Inicializando IA (YOLO + OCR)... Esto puede tardar.")
+print("Ravision")
 analizador_ia = AnalizadorEscena(
     modelo_custom_path='models/detecciones/Modelo_V4.pt',
     modelo_seg_path='yolov8n-seg.pt',
-    confianza_minima=0.3
+    confianza_minima=0.5
 )
 lector_ocr_ia = LectorTexto(
     idioma='es',
@@ -49,54 +48,20 @@ lector_ocr_ia = LectorTexto(
 )
 print("¡IA inicializada!")
 
-# --- Inicialización del Narrador (TTS) ---
+# --- CAMBIO: Inicialización de tu Narrador ---
 try:
-    tts_engine = pyttsx3.init()
-    tts_engine.setProperty('rate', 160)
-    print("Narrador (pyttsx3) inicializado.")
-    tts_engine.say("Sistema de narración iniciado.")
-    tts_engine.runAndWait()
-except Exception as e:
-    print(f"Error al inicializar pyttsx3: {e}. El narrador no funcionará.")
-    tts_engine = None
-
-
-# --- Función para narrar en un hilo ---
-def narrar_en_hilo(texto):
-    """
-    Usa pyttsx3 en un hilo separado para no bloquear el stream de video.
-    Usa un lock para evitar que hable sobre sí mismo (tartamudeo).
-    """
-    if not tts_engine:
-        return
-
-    if tts_lock.acquire(blocking=False):
-        print(f"[NARRADOR DICE]: {texto}")
-        try:
-            tts_engine.say(texto)
-            tts_engine.runAndWait()
-        except Exception as e:
-            print(f"Error en el hilo del narrador: {e}")
-        finally:
-            tts_lock.release()
+    print("Inicializando Narrador (SintetizadorVoz)...")
+    # Ajusta la velocidad aquí si quieres (ej. 140, 160, 170)
+    narrador = SintetizadorVoz(idioma='es', velocidad=140) 
+    if narrador.disponible:
+        narrador.decir_inicio()
     else:
-        print(f"[NARRADOR OCUPADO]: Saltando: '{texto}'")
+        print("El narrador no pudo iniciarse.")
 
-
-def obtener_nombre_objeto(obj):
-    """
-    Extrae el nombre del objeto detectado probando diferentes claves.
-    """
-    # Probar diferentes posibles nombres de clave
-    posibles_claves = ['etiqueta_es', 'label_es', 'clase_es', 'nombre', 'etiqueta', 'label', 'clase', 'name']
-    
-    for clave in posibles_claves:
-        if clave in obj:
-            return obj[clave]
-    
-    # Si no encuentra ninguna clave conocida, intenta convertir el objeto a string para debug
-    print(f"[DEBUG] Estructura de objeto no reconocida: {obj}")
-    return None
+except Exception as e:
+    print(f"Error al inicializar SintetizadorVoz: {e}. El narrador no funcionará.")
+    narrador = None
+# --- FIN DEL CAMBIO ---
 
 
 def process_video_stream(conn):
@@ -109,7 +74,7 @@ def process_video_stream(conn):
 
     try:
         while True:
-            # Recibir el frame de la Pi
+            # (El código de recepción de frames sigue igual...)
             while len(data) < payload_size:
                 packet = conn.recv(4096)
                 if not packet:
@@ -132,53 +97,62 @@ def process_video_stream(conn):
             if frame_bgr is None:
                 continue
 
-            # Procesamiento de IA
+            # Procesamiento de yolo
             frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
             
             analisis_escena = analizador_ia.analizar(frame_rgb, solo_prioritarios=True)
             textos = lector_ocr_ia.detectar_texto(frame_rgb, mejorar_imagen=False)
-            
-            # --- Lógica del Narrador ---
-            try:
-                objetos_lista = analisis_escena.get('objetos', [])
-                
-                # Obtener nombres de objetos actuales
-                nombres_objetos_actuales = set()
-                for obj in objetos_lista:
-                    nombre = obtener_nombre_objeto(obj)
-                    if nombre:
-                        nombres_objetos_actuales.add(nombre)
-                
-                # Comparamos con los que ya habíamos visto
-                nuevos_objetos = nombres_objetos_actuales - objetos_detectados_anteriormente
-                
-                if nuevos_objetos:
-                    # Si hay objetos nuevos, los narramos
-                    texto_a_decir = "Veo " + ", ".join(nuevos_objetos)
-                    
-                    # Iniciar el narrador en un hilo para no bloquear el video
-                    threading.Thread(target=narrar_en_hilo, args=(texto_a_decir,), daemon=True).start()
-                    
-                    # Actualizar el estado para no repetir
-                    objetos_detectados_anteriormente = nombres_objetos_actuales
-                
-                # Si no se ve nada, reseteamos el set para que la próxima vez lo vuelva a decir
-                if not nombres_objetos_actuales and objetos_detectados_anteriormente:
-                    objetos_detectados_anteriormente.clear()
 
-            except Exception as e:
-                print(f"Error en la lógica del narrador: {e}")
-                import traceback
-                traceback.print_exc()
+            # --- LÓGICA DEL NARRADOR (Adaptada a tu clase) ---
+            if narrador and narrador.disponible:
+                try:
+                    # ¡Tu función robusta!
+                    def obtener_nombre_objeto(obj):
+                        posibles_claves = ['etiqueta_es', 'label_es', 'clase_es', 'nombre', 'etiqueta', 'label', 'clase', 'name']
+                        for clave in posibles_claves:
+                            if clave in obj:
+                                return obj[clave]
+                        print(f"[DEBUG] Estructura de objeto no reconocida: {obj}")
+                        return None
 
-            # Dibujo de resultados en el frame
+                    objetos_lista = analisis_escena.get('objetos', [])
+                    nombres_objetos_actuales = set()
+                    for obj in objetos_lista:
+                        nombre = obtener_nombre_objeto(obj)
+                        if nombre:
+                            nombres_objetos_actuales.add(nombre)
+
+                    
+                    nuevos_objetos = nombres_objetos_actuales - objetos_detectados_anteriormente
+                    
+                    # ¡Usamos tu clase!
+                    # Solo habla si hay objetos nuevos Y el narrador no está ya hablando
+                    if nuevos_objetos and not narrador.esta_hablando():
+                        texto_a_decir = "Veo " + ", ".join(nuevos_objetos)
+                        objetos_detectados_anteriormente = nombres_objetos_actuales
+                        # Tu clase ya maneja el hilo, solo llamamos a 'decir'
+                        narrador.decir(texto_a_decir, prioridad=True) 
+                    
+                    # Si la escena está vacía Y el narrador no está ocupado, resetea la memoria
+                    elif not nombres_objetos_actuales and objetos_detectados_anteriormente and not narrador.esta_hablando():
+                        print("[DEBUG Narrador] Escena vacía y narrador libre, reseteando memoria.")
+                        objetos_detectados_anteriormente.clear()
+                    
+                    # Si hay objetos nuevos PERO el narrador está ocupado, lo imprimimos
+                    elif nuevos_objetos and narrador.esta_hablando():
+                        print(f"[NARRADOR OCUPADO]: Saltando: 'Veo {', '.join(nuevos_objetos)}'")
+
+                except Exception as e:
+                    print(f"Error en la lógica del narrador: {e}")
+            # --- FIN DE LÓGICA DEL NARRADOR ---
+
+            # (El código de dibujar y codificar sigue igual...)
             frame_a_mostrar = frame_bgr
             if analisis_escena.get('objetos'):
                 frame_a_mostrar = analizador_ia.dibujar_analisis(frame_a_mostrar, analisis_escena)
             if textos:
                 frame_a_mostrar = lector_ocr_ia.dibujar_texto_detectado(frame_a_mostrar, textos)
 
-            # Codificación JPEG
             encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
             (flag, encodedImage) = cv2.imencode(".jpg", frame_a_mostrar, encode_param)
 
@@ -201,6 +175,7 @@ def process_video_stream(conn):
 
 def start_pi_listener():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST_IP, HOST_PORT))
     server_socket.listen(1)
     print(f"Servidor escuchando a la Pi en {HOST_IP}:{HOST_PORT}")
@@ -217,9 +192,13 @@ def start_pi_listener():
             processing_thread.start()
         except Exception as e:
             print(f"Error al aceptar conexión de la Pi: {e}")
+        except KeyboardInterrupt:
+            print("\nCerrando servidor (Ctrl+C).")
+            break
+    server_socket.close()
 
 
-# --- Aplicación Flask ---
+# Flask
 app = Flask(__name__)
 
 @app.route('/')
@@ -237,7 +216,7 @@ def flask_frame_generator():
         yield (b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
         
-        time.sleep(0.03)
+        time.sleep(0.03) # Limitar a ~30 FPS
 
 @app.route('/video_feed')
 def video_feed():
@@ -248,12 +227,20 @@ def video_feed():
 
 
 if __name__ == '__main__':
-    # Iniciar el hilo que escucha a la Raspberry Pi
     pi_listener_thread = threading.Thread(target=start_pi_listener)
     pi_listener_thread.daemon = True
     pi_listener_thread.start()
 
     print(f"Iniciando servidor Flask. Abre http://127.0.0.1:{FLASK_PORT} en tu navegador.")
-    app.run(host='0.0.0.0', port=FLASK_PORT, debug=False, threaded=True)
+
+    try:
+        app.run(host='0.0.0.0', port=FLASK_PORT, debug=False, threaded=True)
+    except KeyboardInterrupt:
+        print("\nDeteniendo servidor Flask (Ctrl+C).")
+    finally:
+        # --- CAMBIO: Asegurarse de finalizar el narrador ---
+        if narrador and narrador.disponible:
+            narrador.finalizar()
 
     print("Servidor detenido.")
+

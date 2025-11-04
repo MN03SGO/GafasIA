@@ -35,12 +35,12 @@ class AnalizadorEscena:
             self.modelo_segmentacion = None
 
         self.confianza_minima_real = confianza_minima
-        print(f"Umbral de confianza para descripción: {self.confianza_minima_real}") #DEPURACION 
+        print(f"Umbral de confianza para descripción: {self.confianza_minima_real}") 
 
         # Diccionario de traducción completo
         self.ETIQUETAS_INGLES_A_ESPANOL = {
             'Dime': 'moneda de diez centavos','Fifty': 'billete de cincuenta dólares','Five': 'billete de cinco dólares','Hundred': 'billete de cien dólares','Nickel': 'moneda de cinco centavos','One': 'billete de un dólar','Penny': 'moneda de un centavo','Quarter': 'moneda de veinticinco centavos','Ten': 'billete de diez dólares','Twenty': 'billete de veinte dólares','Two': 'billete de dos dólares','aeroplane': 'avión','ascending': 'escaleras que suben','backpack': 'mochila','banana': 'plátano','baseball bat': 'bate de béisbol','baseball glove': 'guante de béisbol','bear': 'oso','bed': 'cama','bench': 'banco','bicycle': 'bicicleta','bird': 'pájaro','boat': 'barco','book': 'libro','bottle': 'botella','bowl': 'tazón','broccoli': 'brócoli','bus': 'autobús','cake': 'pastel','car': 'automóvil','carrot': 'zanahoria','cat': 'gato','cell phone': 'celular','chair': 'silla','clock': 'reloj','cup': 'taza','descending': 'escaleras que bajan','diningtable': 'mesa de comedor','dog': 'perro','donut': 'dona','elephant': 'elefante','fifty': 'billete de cincuenta dólares','five': 'billete de cinco dólares','fork': 'tenedor','frisbee': 'frisbee','giraffe': 'jirafa','handbag': 'bolso','horse': 'caballo','hot dog': 'perro caliente','hundred': 'billete de cien dólares','kite': 'cometa','knife': 'cuchillo','laptop': 'computadora portátil','microwave': 'microondas','motorbike': 'motocicleta','mouse': 'ratón','one': 'billete de un dólar','orange': 'naranja','oven': 'horno','person': 'persona','pizza': 'pizza','pottedplant': 'planta en maceta','refrigerator': 'refrigerador','remote': 'control remoto','sandwich': 'sándwich','scissors': 'tijeras','sink': 'fregadero','skateboard': 'patineta','skis': 'esquís','snowboard': 'tabla de snowboard','sofa': 'sofá','spoon': 'cuchara','sports ball': 'pelota deportiva','stop sign': 'señal de alto','suitcase': 'maleta','teddy bear': 'osito de peluche','ten': 'billete de diez dólares','tennis racket': 'raqueta de tenis','tie': 'corbata','toilet': 'inodoro','toothbrush': 'cepillo de dientes','traffic light': 'semáforo','train': 'tren','truck': 'camión','tvmonitor': 'televisor','twenty': 'billete de veinte dólares','umbrella': 'paraguas','vase': 'florero','walls': 'pared','wine glass': 'copa de vino','zebra': 'cebra', 'papel higienico': 'papel higiénico', # Añadida traducción
-            'Lemon':'limón', 'Lime':'lima', 'Pear':'pera', 'Garlic':'ajo', # Añadidas frutas/veg dom 26 oct 2025 22:04:39 
+            'Lemon':'limón', 'Lime':'lima', 'Pear':'pera', 'Garlic':'ajo',  
             'Potato':'papa', 'Pumpkin':'calabaza', 'Tomato':'tomate', 'Capsicum':'pimiento'
         }
 
@@ -89,7 +89,7 @@ class AnalizadorEscena:
                         'papel higiénico': 'un', 'limón': 'un', 'lima': 'una', 'pera': 'una', 'ajo': 'un', 'papa': 'una', 'calabaza': 'una', 'tomate': 'un', 'pimiento': 'un' }
 
 
-        nombres_prioritarios = { 'persona', 'automóvil', 'motocicleta', 'autobús', 'mochila', 'botella', 'taza', 'silla', 'sofá', 'cama', 'mesa de comedor', 'inodoro', 'televisor', 'computadora portátil', 'control remoto', 'celular', 'libro', 'escaleras', 'escaleras que suben', 'escaleras que bajan', 'pared', 'billete de un dólar', 'billete de cinco dólares', 'billete de diez dólares', 'billete de veinte dólares', 'billete de cincuenta dólares', 'billete de cien dólares', 'billete de dos dólares', 'moneda de un centavo', 'moneda de cinco centavos', 'moneda de diez centavos', 'moneda de veinticinco centavos', 'papel higiénico', 'limón','pera', 'ajo', 'papa', 'tomate'}
+        nombres_prioritarios = { 'persona', 'mochila', 'botella', 'televisor', 'computadora portátil', 'control remoto', 'celular', 'libro', 'escaleras',  'pared', 'billete de un dólar', 'billete de cinco dólares', 'billete de diez dólares', 'billete de veinte dólares', 'moneda de un centavo', 'moneda de cinco centavos', 'moneda de diez centavos', 'moneda de veinticinco centavos'}
         self.objetos_prioritarios = {id for id, nombre in self.etiquetas_es.items() if nombre in nombres_prioritarios}
 
         print(f"IDs de sistema mapeados ({len(self.mapa_ids_modelo_a_sistema)}): OK")

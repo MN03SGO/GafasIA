@@ -7,8 +7,7 @@ from typing import Optional, Dict, List
 import os
 
 class SintetizadorVoz:
-    #└[~/Documentos/GafasIA]> date
-    #vie 17 oct 2025 02:10:50 CST
+    # Tu clase profesional con pyttsx3
     def __init__(self, idioma: str = 'es', velocidad: int = 180, volumen: float = 0.8):
 
         self.idioma = idioma
@@ -21,11 +20,12 @@ class SintetizadorVoz:
             self.motor = pyttsx3.init()
             self._configurar_motor()
             self.disponible = True
-            print("Motor voz inicializado correctamente")
+            print("Motor voz (pyttsx3) inicializado correctamente")
         except Exception as e:
             print(f"Error al inicializar síntesis de voz: {e}")
             self.disponible = False
             self.motor = None
+            
         self.frases_contexto = {
             'inicio': [
                 "Rasvision activado",
@@ -86,7 +86,7 @@ class SintetizadorVoz:
                 if mensaje is None:
                     break
                 self.reproduciendo = True
-                print(f"Reproduciendo: '{mensaje}'")
+                print(f"Reproduciendo (pyttsx3): '{mensaje}'")
                 self.motor.say(mensaje)
                 self.motor.runAndWait()
                 self.reproduciendo = False
@@ -108,26 +108,28 @@ class SintetizadorVoz:
         print(f"Mensaje encolado: '{mensaje[:50]}...' (Cola: {self.cola_mensajes.qsize()})")
     
     def decir_detecciones(self, detecciones: List[Dict], incluir_detalles: bool = False):
+        # Esta es la lógica compleja para decidir qué decir
         if not detecciones:
-            self.decir(self._obtener_frase_aleatoria('sin_objetos'), prioridad=True)
+            if not self.esta_hablando(): # No interrumpir si ya está diciendo algo
+                self.decir(self._obtener_frase_aleatoria('sin_objetos'), prioridad=True)
             return
 
         detecciones.sort(key=lambda x: x.get('prioridad', 0), reverse=True)
         if len(detecciones) == 1:
             det = detecciones[0]
-            if det['clase_id'] == 0: # Es una persona
+            if det.get('clase_id', -1) == 0: # Asumimos 0 = persona
                 mensaje = self._obtener_frase_aleatoria('persona_cerca')
-                if incluir_detalles:
+                if incluir_detalles and 'posicion' in det:
                     mensaje += f", {det['posicion']}"
             else:
-                mensaje = f"Veo {det['nombre']} {det['posicion']}"
+                mensaje = f"Veo {det.get('nombre', 'un objeto')} {det.get('posicion', '')}"
                 if 'distancia_relativa' in det:
                     mensaje += f", {det['distancia_relativa']}"
             self.decir(mensaje, prioridad=True)
             return
         
-        personas = [d for d in detecciones if d['clase_id'] == 0]
-        objetos = [d for d in detecciones if d['clase_id'] != 0]
+        personas = [d for d in detecciones if d.get('clase_id', -1) == 0]
+        objetos = [d for d in detecciones if d.get('clase_id', -1) != 0]
         
         partes_mensaje = []
         if personas:
@@ -135,12 +137,13 @@ class SintetizadorVoz:
             partes_mensaje.append(f"{'Hay una persona' if num_personas == 1 else f'Hay {num_personas} personas'} cerca")
         
         if objetos:
+            nombres_obj = [o.get('nombre', 'objeto') for o in objetos]
             if len(objetos) == 1:
-                partes_mensaje.append(f"y veo {objetos[0]['nombre']}")
+                partes_mensaje.append(f"y veo {nombres_obj[0]}")
             elif len(objetos) == 2:
-                partes_mensaje.append(f"y veo {objetos[0]['nombre']} y {objetos[1]['nombre']}")
+                partes_mensaje.append(f"y veo {nombres_obj[0]} y {nombres_obj[1]}")
             else:
-                partes_mensaje.append(f"y veo {objetos[0]['nombre']}, {objetos[1]['nombre']} y otros objetos")
+                partes_mensaje.append(f"y veo {nombres_obj[0]}, {nombres_obj[1]} y otros objetos")
         
         mensaje = ", ".join(partes_mensaje) if partes_mensaje else self._obtener_frase_aleatoria('multiples_objetos')
         self.decir(mensaje, prioridad=True)
@@ -181,7 +184,7 @@ class SintetizadorVoz:
             self.decir(f"Volumen ajustado.", prioridad=True)
     
     def probar_voz(self):
-        mensaje_prueba = "Soy pepito. El sistema de síntesis de voz está funcionando correctamente."
+        mensaje_prueba = "Soy Rasvision. El sistema de síntesis de voz pyttsx3 está funcionando correctamente."
         self.decir(mensaje_prueba, prioridad=True)
     
     def finalizar(self):
@@ -197,4 +200,3 @@ class SintetizadorVoz:
 
     def __del__(self):
         self.finalizar()
-        

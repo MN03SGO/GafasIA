@@ -1,4 +1,4 @@
-
+\
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #ffffff; /* Fondo blanco */
@@ -35,8 +35,7 @@ img {
     max-width: 640px;
     height: auto;
     background-color: #e0e0e0; /*gris claro */
-}
-
+    transform: 90
 /* footer */
 p {
     font-size: 0.9rem;
