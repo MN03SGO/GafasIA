@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RasVision</title>
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+
+    <h1>Proyecto RasVision - Stream en Vivo</h1>
+    
+    <div id="video-container">
+        <img src="{{ url_for('video_feed') }}" alt="Cargando stream de video de RasVision..." width="640" height="480">
+    </div>
+
+    <p>Stream desde la Raspberry Pi (Picamera2 + YOLOv8 + Flask)</p>
+
+</body>
+</html>    
