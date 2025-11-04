@@ -7,12 +7,9 @@ import sys
 import os
 import time
 from flask import Flask, render_template, Response
-# --- CAMBIO: Importamos tu clase desde 'src.audio' ---
 from src.audio.sintetizador_voz import SintetizadorVoz
 
 
-# --- FIX: Agregar 'src' al path de Python ---
-# (Asegurarse de que 'src' esté en el path para encontrar 'audio')
 sys.path.insert(0, os.path.join(os.path.dirname(__file__))) 
 
 
@@ -21,7 +18,6 @@ try:
     from src.deteccion.analizador_escena import AnalizadorEscena
 except ImportError as e:
     print(f"Error al importar módulos: {e}")
-    # --- CAMBIO: Mensaje de error corregido ---
     print("Asegúrate de que 'src' contenga 'ocr', 'deteccion' y 'audio'.")
     sys.exit(1)
 
@@ -48,10 +44,8 @@ lector_ocr_ia = LectorTexto(
 )
 print("¡IA inicializada!")
 
-# --- CAMBIO: Inicialización de tu Narrador ---
 try:
     print("Inicializando Narrador (SintetizadorVoz)...")
-    # Ajusta la velocidad aquí si quieres (ej. 140, 160, 170)
     narrador = SintetizadorVoz(idioma='es', velocidad=140) 
     if narrador.disponible:
         narrador.decir_inicio()
@@ -74,7 +68,6 @@ def process_video_stream(conn):
 
     try:
         while True:
-            # (El código de recepción de frames sigue igual...)
             while len(data) < payload_size:
                 packet = conn.recv(4096)
                 if not packet:
@@ -103,10 +96,8 @@ def process_video_stream(conn):
             analisis_escena = analizador_ia.analizar(frame_rgb, solo_prioritarios=True)
             textos = lector_ocr_ia.detectar_texto(frame_rgb, mejorar_imagen=False)
 
-            # --- LÓGICA DEL NARRADOR (Adaptada a tu clase) ---
             if narrador and narrador.disponible:
                 try:
-                    # ¡Tu función robusta!
                     def obtener_nombre_objeto(obj):
                         posibles_claves = ['etiqueta_es', 'label_es', 'clase_es', 'nombre', 'etiqueta', 'label', 'clase', 'name']
                         for clave in posibles_claves:
@@ -124,29 +115,21 @@ def process_video_stream(conn):
 
                     
                     nuevos_objetos = nombres_objetos_actuales - objetos_detectados_anteriormente
-                    
-                    # ¡Usamos tu clase!
-                    # Solo habla si hay objetos nuevos Y el narrador no está ya hablando
                     if nuevos_objetos and not narrador.esta_hablando():
                         texto_a_decir = "Veo " + ", ".join(nuevos_objetos)
                         objetos_detectados_anteriormente = nombres_objetos_actuales
-                        # Tu clase ya maneja el hilo, solo llamamos a 'decir'
+        
                         narrador.decir(texto_a_decir, prioridad=True) 
                     
-                    # Si la escena está vacía Y el narrador no está ocupado, resetea la memoria
                     elif not nombres_objetos_actuales and objetos_detectados_anteriormente and not narrador.esta_hablando():
                         print("[DEBUG Narrador] Escena vacía y narrador libre, reseteando memoria.")
                         objetos_detectados_anteriormente.clear()
                     
-                    # Si hay objetos nuevos PERO el narrador está ocupado, lo imprimimos
                     elif nuevos_objetos and narrador.esta_hablando():
                         print(f"[NARRADOR OCUPADO]: Saltando: 'Veo {', '.join(nuevos_objetos)}'")
 
                 except Exception as e:
                     print(f"Error en la lógica del narrador: {e}")
-            # --- FIN DE LÓGICA DEL NARRADOR ---
-
-            # (El código de dibujar y codificar sigue igual...)
             frame_a_mostrar = frame_bgr
             if analisis_escena.get('objetos'):
                 frame_a_mostrar = analizador_ia.dibujar_analisis(frame_a_mostrar, analisis_escena)
@@ -238,7 +221,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print("\nDeteniendo servidor Flask (Ctrl+C).")
     finally:
-        # --- CAMBIO: Asegurarse de finalizar el narrador ---
         if narrador and narrador.disponible:
             narrador.finalizar()
 
